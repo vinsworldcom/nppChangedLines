@@ -38,7 +38,6 @@ const TCHAR NPP_PLUGIN_NAME[] = TEXT( "Changed &Lines" );
 //
 const int nbFunc = 6;
 
-
 //
 // Initialization of your plugin data
 // It will be called while plugin loading
@@ -67,7 +66,6 @@ void commandMenuCleanUp();
 bool setCommand( size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc,
                  ShortcutKey *sk = NULL, bool check0nInit = false );
 
-
 //
 // Your plugin command functions
 //
@@ -87,8 +85,7 @@ void clearAllCF();
 void doEnable();
 void gotoNextChange();
 void gotoPrevChange();
-void addMarkerChange();
-void addMarkerSave();
+void SetBookmark( HWND, int, Sci_Position, Sci_Position );
 void convertChangeToSave();
 void DockableDlg();
 
