@@ -219,7 +219,7 @@ void DestroyPlugin()
 
         SendMessage( hCurScintilla, SCI_MARKERDELETEALL, CHANGE_MARKER, 0 );
         SendMessage( hCurScintilla, SCI_MARKERDELETEALL, SAVE_MARKER, 0 );
-        
+
         SendMessage( hCurScintilla, SCI_SETMARGINTYPEN, DEFAULT_MARGIN, 0 );
         SendMessage( hCurScintilla, SCI_SETMARGINWIDTHN, DEFAULT_MARGIN, 0 );
     }
@@ -306,7 +306,7 @@ int AddMarkFromLine( HWND hCurScintilla, int line )
     return markHandle;
 }
 
-void SetBookmark( HWND hCurScintilla, int lineNo, Sci_Position linesAdded, Sci_Position len )
+void SetBookmark( HWND hCurScintilla, int lineNo, Sci_Position linesAdded )
 {
     int handle = AddMarkFromLine( hCurScintilla, lineNo );
 
@@ -318,11 +318,42 @@ void SetBookmark( HWND hCurScintilla, int lineNo, Sci_Position linesAdded, Sci_P
         for ( int line = 1; line <= linesAdded; line++ )
             AddMarkFromLine( hCurScintilla, lineNo + line );
     }
+}
 
-    int lineLen = -1;
+bool RemoveMarkFromLine( HWND hCurScintilla, int line )
+{
+    int state = ( int )::SendMessage( hCurScintilla, SCI_MARKERGET, line, 0 );
 
-    if ( linesAdded == 0 )
-        lineLen = ( int )::SendMessage( hCurScintilla, SCI_LINELENGTH, lineNo, 0 ) - len;
+    if ( state == 0 )
+        return false;
+
+    if ( state == SAVE_MASK )
+        SendMessage( hCurScintilla, SCI_MARKERDELETE, line, SAVE_MARKER );
+    else
+        SendMessage( hCurScintilla, SCI_MARKERDELETE, line, CHANGE_MARKER );
+
+    return true;
+}
+
+void DelBookmark( HWND hCurScintilla, int lineNo, Sci_Position lineAdd )
+{
+    bool canUndoFlag = SendMessage( hCurScintilla, SCI_CANUNDO, 0, 0 );
+
+    if ( !canUndoFlag )
+    {
+        SendMessage( hCurScintilla, SCI_MARKERDELETEALL, CHANGE_MARKER, 0 );
+        SendMessage( hCurScintilla, SCI_MARKERDELETEALL, SAVE_MARKER, 0 );
+        return;
+    }
+
+    int lineB = lineNo;
+    int lineE = lineNo + lineAdd;
+
+    if ( lineAdd < 0 )
+        lineE = lineNo - lineAdd;
+
+    for ( int line = lineB; line <= lineE; line++ )
+        RemoveMarkFromLine( hCurScintilla, line );
 }
 
 void convertChangeToSave()

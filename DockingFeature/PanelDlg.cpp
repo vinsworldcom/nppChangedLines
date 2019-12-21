@@ -35,14 +35,24 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
         {
             switch ( wParam )
             {
-                case IDC_BTN1 :
-                {
-                    clearAllCF();
-                    return TRUE;
-                }
                 case IDC_CHK1 :
                 {
                     doEnable();
+                    return TRUE;
+                }
+                case IDC_BTN1 :
+                {
+                    gotoNextChange();
+                    return TRUE;
+                }
+                case IDC_BTN2 :
+                {
+                    gotoPrevChange();
+                    return TRUE;
+                }
+                case IDC_BTN3 :
+                {
+                    clearAllCF();
                     return TRUE;
                 }
             }

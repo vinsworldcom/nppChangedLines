@@ -50,7 +50,6 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD  reasonForCall, LPVOID /*lpReserve
     return TRUE;
 }
 
-
 extern "C" __declspec( dllexport ) void setInfo( NppData notpadPlusData )
 {
     nppData = notpadPlusData;
@@ -146,13 +145,13 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
                         if ( notifyCode->linesAdded == 0 && preModifyPos != pos && preModifyPos != -1 )
                         {
                             line = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, preModifyPos, 0 );
-                            // DelBookmark( line, preModifyPos, preModifyLineAdd );
+                            DelBookmark( hCurScintilla, line, preModifyLineAdd );
                         }
          
                         if ( notifyCode->linesAdded != 0 || ( ModifyType & SC_LASTSTEPINUNDOREDO ) )
                         {
                             line = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, pos, 0 );
-                            // DelBookmark( line, pos, notifyCode->linesAdded );
+                            DelBookmark( hCurScintilla, line, notifyCode->linesAdded );
                             preModifyPos = -1;
                         }
                         else
@@ -165,7 +164,7 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
                     {
                         // SC_PERFORMED_REDO
                         int line = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, notifyCode->position, 0 );
-                        SetBookmark( hCurScintilla, line, notifyCode->linesAdded, len );
+                        SetBookmark( hCurScintilla, line, notifyCode->linesAdded );
                     }
                 }
             }
@@ -188,7 +187,6 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
             return;
     }
 }
-
 
 // Here you can process the Npp Messages
 // I will make the messages accessible little by little, according to the need of plugin development.

@@ -85,7 +85,8 @@ void clearAllCF();
 void doEnable();
 void gotoNextChange();
 void gotoPrevChange();
-void SetBookmark( HWND, int, Sci_Position, Sci_Position );
+void SetBookmark( HWND, int, Sci_Position );
+void DelBookmark( HWND, int, Sci_Position );
 void convertChangeToSave();
 void DockableDlg();
 
