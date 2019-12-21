@@ -87,10 +87,9 @@ void clearAllCF();
 void doEnable();
 void gotoNextChange();
 void gotoPrevChange();
-/*
-int  findNextMark( HWND, int, int );
-void DeleteAllMarks( HWND, int, int );
-*/
+void addMarkerChange();
+void addMarkerSave();
+void convertChangeToSave();
 void DockableDlg();
 
 #endif //PLUGINDEFINITION_H

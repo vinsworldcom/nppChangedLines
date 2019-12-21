@@ -100,15 +100,26 @@ void commandMenuInit()
     //            ShortcutKey *shortcut,          // optional. Define a shortcut to trigger this command
     //            bool check0nInit                // optional. Make this menu item be checked visually
     //            );
+    ShortcutKey *PreChgKey = new ShortcutKey;
+    PreChgKey->_isAlt = true;
+    PreChgKey->_isCtrl = true;
+    PreChgKey->_isShift = false;
+    PreChgKey->_key = 0x5A ; //VK_Z
+
+    ShortcutKey *NextChgKey = new ShortcutKey;
+    NextChgKey->_isAlt = true;
+    NextChgKey->_isCtrl = true;
+    NextChgKey->_isShift = false;
+    NextChgKey->_key = 0x59;  //VK_Y
 
     setCommand( ENABLE_INDEX, TEXT( "&Enable" ), doEnable, NULL,
                 g_enabled ? true : false );
     setCommand( DOCKABLE_INDEX, TEXT( "Changed Lines Panel" ), DockableDlg,
                 NULL, false );
     setCommand( 2, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
-    setCommand( 3, TEXT( "Goto &Next Change" ), gotoNextChange, NULL,
+    setCommand( 3, TEXT( "Goto &Next Change" ), gotoNextChange, NextChgKey,
                 false );
-    setCommand( 4, TEXT( "Goto &Previous Change" ), gotoPrevChange, NULL,
+    setCommand( 4, TEXT( "Goto &Previous Change" ), gotoPrevChange, PreChgKey,
                 false );
     setCommand( 5, TEXT( "&Clear all in Current File" ), clearAllCF, NULL,
                 false );
@@ -156,12 +167,14 @@ HWND getCurScintilla()
 
 int findNextMark( HWND hCurScintilla, int searchStart, int mask )
 {
-    return( ( int )::SendMessage( hCurScintilla, SCI_MARKERNEXT, searchStart, mask ) );
+    return ( ( int )::SendMessage( hCurScintilla, SCI_MARKERNEXT, searchStart,
+                                   mask ) );
 }
 
 int findPrevMark( HWND hCurScintilla, int searchStart, int mask )
 {
-    return( ( int )::SendMessage( hCurScintilla, SCI_MARKERPREVIOUS, searchStart, mask ) );
+    return ( ( int )::SendMessage( hCurScintilla, SCI_MARKERPREVIOUS,
+                                   searchStart, mask ) );
 }
 
 void DeleteAllMarks( HWND hCurScintilla, int mask, int marker )
@@ -171,11 +184,12 @@ void DeleteAllMarks( HWND hCurScintilla, int mask, int marker )
     while ( true )
     {
         int line = findNextMark( hCurScintilla, pos, mask );
+
         if ( line == -1 )
             break;
 
         SendMessage( hCurScintilla, SCI_MARKERDELETE, line, marker );
-        pos = line + 1;
+        pos = line;
     }
 }
 
@@ -261,9 +275,11 @@ void gotoNextChange()
     HWND hCurScintilla = getCurScintilla();
 
     int pos = ( int )::SendMessage( hCurScintilla, SCI_GETCURRENTPOS, 0, 0 );
-    int searchStart = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, pos, 0 );
+    int searchStart = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
+                                            pos, 0 );
 
-    int line = findNextMark( hCurScintilla, searchStart+1, CHANGE_MASK );
+    int line = findNextMark( hCurScintilla, searchStart + 1, CHANGE_MASK );
+
     if ( line == -1 )
         line = findNextMark( hCurScintilla, 0, CHANGE_MASK );
 
@@ -276,16 +292,70 @@ void gotoPrevChange()
     HWND hCurScintilla = getCurScintilla();
 
     int pos = ( int )::SendMessage( hCurScintilla, SCI_GETCURRENTPOS, 0, 0 );
-    int searchStart = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, pos, 0 );
+    int searchStart = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
+                                            pos, 0 );
 
-    int line = findPrevMark( hCurScintilla, searchStart-1, CHANGE_MASK );
-    if ( line == -1 ){
-        int end = ( int )::SendMessage( hCurScintilla, SCI_GETLINECOUNT , 0, 0 );
+    int line = findPrevMark( hCurScintilla, searchStart - 1, CHANGE_MASK );
+
+    if ( line == -1 )
+    {
+        int end = ( int )::SendMessage( hCurScintilla, SCI_GETLINECOUNT, 0, 0 );
         line = findPrevMark( hCurScintilla, end, CHANGE_MASK );
     }
 
     if ( line != -1 )
         SendMessage( hCurScintilla, SCI_GOTOLINE, line, 0 );
+}
+
+void addMarkerChange()
+{
+    HWND hCurScintilla = getCurScintilla();
+
+    int pos = ( int )::SendMessage( hCurScintilla, SCI_GETCURRENTPOS, 0, 0 );
+    int line = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, pos,
+                                     0 );
+    int mark = findNextMark( hCurScintilla, line, CHANGE_MASK );
+
+    if ( mark != line )
+    {
+        SendMessage( hCurScintilla, SCI_MARKERDELETE, line, SAVE_MARKER );
+        SendMessage( hCurScintilla, SCI_MARKERADD, line, CHANGE_MARKER );
+    }
+}
+
+void addMarkerSave()
+{
+    HWND hCurScintilla = getCurScintilla();
+
+    int pos = ( int )::SendMessage( hCurScintilla, SCI_GETCURRENTPOS, 0, 0 );
+    int line = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, pos,
+                                     0 );
+    int mark = findNextMark( hCurScintilla, line, SAVE_MASK );
+
+    if ( mark != line )
+    {
+        SendMessage( hCurScintilla, SCI_MARKERDELETE, line, CHANGE_MARKER );
+        SendMessage( hCurScintilla, SCI_MARKERADD, line, SAVE_MARKER );
+    }
+}
+
+void convertChangeToSave()
+{
+    HWND hCurScintilla = getCurScintilla();
+
+    int pos = 0;
+
+    while ( true )
+    {
+        int line = findNextMark( hCurScintilla, pos, CHANGE_MASK );
+
+        if ( line == -1 )
+            break;
+
+        SendMessage( hCurScintilla, SCI_MARKERDELETE, line, CHANGE_MARKER );
+        SendMessage( hCurScintilla, SCI_MARKERADD, line, SAVE_MARKER );
+        pos = line;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////

@@ -66,6 +66,8 @@ extern "C" __declspec( dllexport ) FuncItem *getFuncsArray( int *nbF )
 
 extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
 {
+    int ModifyType = notifyCode->modificationType;
+
     switch (notifyCode->nmhdr.code)
     {
         case NPPN_READY:
@@ -73,6 +75,49 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
             if ( g_enabled )
                 InitPlugin();
         }
+        break;
+
+        case SCN_MODIFIED:
+        {
+            if ( !g_enabled )
+                break;
+
+            if ( notifyCode->nmhdr.hwndFrom != nppData._scintillaMainHandle &&
+                 notifyCode->nmhdr.hwndFrom != nppData._scintillaSecondHandle )
+                break;
+
+            long pos = 0;
+            long len = 0;
+            bool flag = false;
+
+            if ( ModifyType & SC_MOD_INSERTTEXT )
+            {
+                pos = notifyCode->position;
+                len = notifyCode->length;
+                flag = true;
+            }
+            else if ( ModifyType & SC_MOD_DELETETEXT )
+            {
+                pos = notifyCode->position;
+                len = -notifyCode->length;
+                flag = true;
+            }
+
+            if ( flag )
+            {
+                if ( notifyCode->text == NULL && ( ModifyType == 0x12 ||
+                                                   ModifyType == 0x11 ) )
+                    break;
+                addMarkerChange();
+            }
+        }
+        break;
+
+        case SCN_SAVEPOINTREACHED:
+        {
+            convertChangeToSave();
+        }
+        break;
 
         case NPPN_SHUTDOWN:
         {
