@@ -212,6 +212,45 @@ int findPrevMark( HWND hCurScintilla, int searchStart, int mask )
                                    searchStart, mask ) );
 }
 
+void UpdatePlugin( UINT Msg, WPARAM wParam, LPARAM lParam )
+{
+    HWND ScintillaArr[] = { nppData._scintillaMainHandle, nppData._scintillaSecondHandle };
+
+    for ( int i = 0; i < 2; i++ )
+    {
+        HWND hCurScintilla = ScintillaArr[i];
+        SendMessage( hCurScintilla, Msg, wParam, lParam );
+    }
+}
+
+void updateWidth()
+{
+    UpdatePlugin( SCI_SETMARGINWIDTHN, DEFAULT_MARGIN, g_Width );
+}
+
+void updateChangeColor()
+{
+    UpdatePlugin( SCI_MARKERSETFORE, CHANGE_MARKER, g_ChangeColor );
+    UpdatePlugin( SCI_MARKERSETBACK, CHANGE_MARKER, g_ChangeColor );
+}
+
+void updateSaveColor()
+{
+    UpdatePlugin( SCI_MARKERSETFORE, SAVE_MARKER, g_SaveColor );
+    UpdatePlugin( SCI_MARKERSETBACK, SAVE_MARKER, g_SaveColor );
+}
+
+void updateChangeStyle()
+{
+    UpdatePlugin( SCI_MARKERDEFINE, CHANGE_MARKER, g_ChangeMarkStyle );
+
+}
+
+void updateSaveStyle()
+{
+    UpdatePlugin( SCI_MARKERDEFINE, SAVE_MARKER, g_SaveMarkStyle );
+}
+
 void InitPlugin()
 {
     HWND ScintillaArr[] = { nppData._scintillaMainHandle, nppData._scintillaSecondHandle };
@@ -222,35 +261,24 @@ void InitPlugin()
 
         SendMessage( hCurScintilla, SCI_SETMARGINTYPEN, DEFAULT_MARGIN,
                      SC_MARGIN_SYMBOL );
-        SendMessage( hCurScintilla, SCI_SETMARGINWIDTHN, DEFAULT_MARGIN,
-                     g_Width );
-
+      
         // Mask
         int OriMask = ( int )::SendMessage( hCurScintilla, SCI_GETMARGINMASKN,
                                             DEFAULT_MARGIN, 0 );
         int tmpMask = 0;
         tmpMask = OriMask | CHANGE_MASK | SAVE_MASK;
         SendMessage( hCurScintilla, SCI_SETMARGINMASKN, DEFAULT_MARGIN, tmpMask );
-
-        // Color
-        SendMessage( hCurScintilla, SCI_MARKERSETFORE, CHANGE_MARKER,
-                     g_ChangeColor );
-        SendMessage( hCurScintilla, SCI_MARKERSETFORE, SAVE_MARKER, g_SaveColor );
-        SendMessage( hCurScintilla, SCI_MARKERSETBACK, CHANGE_MARKER,
-                     g_ChangeColor );
-        SendMessage( hCurScintilla, SCI_MARKERSETBACK, SAVE_MARKER, g_SaveColor );
-
-        // Style
-        SendMessage( hCurScintilla, SCI_MARKERDEFINE, CHANGE_MARKER,
-                     g_ChangeMarkStyle );
-        SendMessage( hCurScintilla, SCI_MARKERDEFINE, SAVE_MARKER,
-                     g_SaveMarkStyle );
     }
+
+    updateWidth();
+    updateChangeColor();
+    updateSaveColor();
+    updateChangeStyle();
+    updateSaveStyle();
 }
 
 void DestroyPlugin()
 {
-
     HWND ScintillaArr[] = { nppData._scintillaMainHandle, nppData._scintillaSecondHandle };
 
     for ( int i = 0; i < 2; i++ )

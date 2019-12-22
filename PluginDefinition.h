@@ -84,6 +84,11 @@ const int CHANGE_MASK    = ( 1 << CHANGE_MARKER );
 const int SAVE_MASK      = ( 1 << SAVE_MARKER );
 
 HWND getCurScintilla();
+void updateWidth();
+void updateChangeColor();
+void updateSaveColor();
+void updateChangeStyle();
+void updateSaveStyle();
 void InitPlugin();
 void DestroyPlugin();
 void clearAllCF();
