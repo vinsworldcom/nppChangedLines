@@ -258,11 +258,20 @@ void gotoNextChange()
 {
     HWND hCurScintilla = getCurScintilla();
 
+    int line = 0;
     int pos = ( int )::SendMessage( hCurScintilla, SCI_GETCURRENTPOS, 0, 0 );
     int searchStart = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
                                             pos, 0 );
-
-    int line = findNextMark( hCurScintilla, searchStart + 1, CHANGE_MASK );
+    while ( true )
+    {
+        line = findNextMark( hCurScintilla, searchStart + 1, CHANGE_MASK );
+        if ( line == -1 )
+            break;
+        if ( line == searchStart + 1 )
+            searchStart++;
+        else
+            break;
+    }
 
     if ( line == -1 )
         line = findNextMark( hCurScintilla, 0, CHANGE_MASK );
@@ -275,11 +284,21 @@ void gotoPrevChange()
 {
     HWND hCurScintilla = getCurScintilla();
 
+    int line = 0;
     int pos = ( int )::SendMessage( hCurScintilla, SCI_GETCURRENTPOS, 0, 0 );
     int searchStart = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
                                             pos, 0 );
 
-    int line = findPrevMark( hCurScintilla, searchStart - 1, CHANGE_MASK );
+    while ( true )
+    {
+        line = findPrevMark( hCurScintilla, searchStart - 1, CHANGE_MASK );
+        if ( line == -1 )
+            break;
+        if ( line == searchStart - 1 )
+            searchStart--;
+        else
+            break;
+    }
 
     if ( line == -1 )
     {
