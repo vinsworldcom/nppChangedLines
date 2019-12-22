@@ -17,6 +17,8 @@
 
 #ifndef PLUGINDEFINITION_H
 #define PLUGINDEFINITION_H
+#include <windows.h>
+#include <tchar.h>
 
 //
 // All difinitions of plugin interface
@@ -71,8 +73,11 @@ bool setCommand( size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc,
 //
 #define DefaultChangeColor 0x86c2ff
 #define DefaultSaveColor   0xb5ffb5
+#define DefaultChangeStyle SC_MARK_FULLRECT
+#define DefaultSaveStyle   SC_MARK_FULLRECT
+#define DefaultWidth       4
+#define NUMDIGIT           64
 const int DEFAULT_MARGIN = 4;
-const int DEFAULT_WIDTH  = 4;
 const int CHANGE_MARKER  = 10;
 const int SAVE_MARKER    = 11;
 const int CHANGE_MASK    = ( 1 << CHANGE_MARKER );

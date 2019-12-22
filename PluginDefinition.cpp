@@ -24,13 +24,22 @@
 #include <shlwapi.h>
 #include "DockingFeature/PanelDlg.h"
 
-const TCHAR sectionName[] = TEXT( "Settings" );
-const TCHAR keyName[] = TEXT( "Enabled" );
-const TCHAR configFileName[] = TEXT( "ChangedLines.ini" );
+const TCHAR configFileName[]     = TEXT( "ChangedLines.ini" );
+const TCHAR sectionName[]        = TEXT( "Settings" );
+const TCHAR iniKeyEnabled[]      = TEXT( "Enabled" );
+const TCHAR iniKeyWidth[]        = TEXT( "Width" );
+const TCHAR iniKeyColorChange[]  = TEXT( "ColorChange" );
+const TCHAR iniKeyColorSave[]    = TEXT( "ColorSave" );
+const TCHAR iniKeyMarkerChange[] = TEXT( "MarkerChange" );
+const TCHAR iniKeyMarkerSave[]   = TEXT( "MarkerSave" );
 
 DemoDlg _Panel;
-long ChangeColor = DefaultChangeColor;
-long SaveColor   = DefaultSaveColor;
+bool g_enabled         = false;
+int  g_Width           = DefaultWidth;
+long g_ChangeColor     = DefaultChangeColor;
+long g_SaveColor       = DefaultSaveColor;
+int  g_ChangeMarkStyle = DefaultChangeStyle;
+int  g_SaveMarkStyle   = DefaultSaveStyle;
 
 //
 // The plugin data that Notepad++ needs
@@ -43,7 +52,6 @@ FuncItem funcItem[nbFunc];
 NppData nppData;
 
 TCHAR iniFilePath[MAX_PATH];
-bool g_enabled = false;
 
 #define ENABLE_INDEX 0
 #define DOCKABLE_INDEX 1
@@ -62,8 +70,25 @@ void pluginInit( HANDLE hModule )
 //
 void pluginCleanUp()
 {
-    ::WritePrivateProfileString( sectionName, keyName,
+    TCHAR buf[NUMDIGIT];
+
+    ::WritePrivateProfileString( sectionName, iniKeyEnabled,
                                  g_enabled ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
+    _itot_s( g_Width, buf, NUMDIGIT, 10 );
+    ::WritePrivateProfileString( sectionName, iniKeyWidth, buf,
+                                 iniFilePath );
+    _itot_s( g_ChangeColor, buf, NUMDIGIT, 10 );
+    ::WritePrivateProfileString( sectionName, iniKeyColorChange, buf,
+                                 iniFilePath );
+    _itot_s( g_SaveColor, buf, NUMDIGIT, 10 );
+    ::WritePrivateProfileString( sectionName, iniKeyColorSave, buf,
+                                 iniFilePath );
+    _itot_s( g_ChangeMarkStyle, buf, NUMDIGIT, 10 );
+    ::WritePrivateProfileString( sectionName, iniKeyMarkerChange, buf,
+                                 iniFilePath );
+    _itot_s( g_SaveMarkStyle, buf, NUMDIGIT, 10 );
+    ::WritePrivateProfileString( sectionName, iniKeyMarkerSave, buf,
+                                 iniFilePath );
 }
 
 //
@@ -87,8 +112,18 @@ void commandMenuInit()
     PathAppend( iniFilePath, configFileName );
 
     // get the parameter value from plugin config
-    g_enabled = ::GetPrivateProfileInt( sectionName, keyName, 0,
-                                        iniFilePath );
+    g_enabled         = ::GetPrivateProfileInt( sectionName, iniKeyEnabled, 0,
+                        iniFilePath );
+    g_Width           = ::GetPrivateProfileInt( sectionName, iniKeyWidth,
+                        DefaultWidth, iniFilePath );
+    g_ChangeColor     = ::GetPrivateProfileInt( sectionName, iniKeyColorChange,
+                        DefaultChangeColor, iniFilePath );
+    g_SaveColor       = ::GetPrivateProfileInt( sectionName, iniKeyColorSave,
+                        DefaultSaveColor, iniFilePath );
+    g_ChangeMarkStyle = ::GetPrivateProfileInt( sectionName, iniKeyMarkerChange,
+                        DefaultChangeStyle, iniFilePath );
+    g_SaveMarkStyle   = ::GetPrivateProfileInt( sectionName, iniKeyMarkerSave,
+                        DefaultSaveStyle, iniFilePath );
 
     //--------------------------------------------//
     //-- STEP 3. CUSTOMIZE YOUR PLUGIN COMMANDS --//
@@ -100,17 +135,17 @@ void commandMenuInit()
     //            ShortcutKey *shortcut,          // optional. Define a shortcut to trigger this command
     //            bool check0nInit                // optional. Make this menu item be checked visually
     //            );
-    ShortcutKey *PreChgKey = new ShortcutKey;
-    PreChgKey->_isAlt = true;
-    PreChgKey->_isCtrl = true;
-    PreChgKey->_isShift = false;
-    PreChgKey->_key = 0x5A ; //VK_Z
+    ShortcutKey *PreChgKey  = new ShortcutKey;
+    PreChgKey->_isAlt       = true;
+    PreChgKey->_isCtrl      = true;
+    PreChgKey->_isShift     = false;
+    PreChgKey->_key         = 0x5A ; //VK_Z
 
     ShortcutKey *NextChgKey = new ShortcutKey;
-    NextChgKey->_isAlt = true;
-    NextChgKey->_isCtrl = true;
-    NextChgKey->_isShift = false;
-    NextChgKey->_key = 0x59;  //VK_Y
+    NextChgKey->_isAlt      = true;
+    NextChgKey->_isCtrl     = true;
+    NextChgKey->_isShift    = false;
+    NextChgKey->_key        = 0x59;  //VK_Y
 
     setCommand( ENABLE_INDEX, TEXT( "&Enable" ), doEnable, NULL,
                 g_enabled ? true : false );
@@ -188,23 +223,28 @@ void InitPlugin()
         SendMessage( hCurScintilla, SCI_SETMARGINTYPEN, DEFAULT_MARGIN,
                      SC_MARGIN_SYMBOL );
         SendMessage( hCurScintilla, SCI_SETMARGINWIDTHN, DEFAULT_MARGIN,
-                     DEFAULT_WIDTH );
+                     g_Width );
 
+        // Mask
         int OriMask = ( int )::SendMessage( hCurScintilla, SCI_GETMARGINMASKN,
                                             DEFAULT_MARGIN, 0 );
         int tmpMask = 0;
         tmpMask = OriMask | CHANGE_MASK | SAVE_MASK;
         SendMessage( hCurScintilla, SCI_SETMARGINMASKN, DEFAULT_MARGIN, tmpMask );
 
-        SendMessage( hCurScintilla, SCI_MARKERSETFORE, CHANGE_MARKER, ChangeColor );
-        SendMessage( hCurScintilla, SCI_MARKERSETFORE, SAVE_MARKER, SaveColor );
-        SendMessage( hCurScintilla, SCI_MARKERSETBACK, CHANGE_MARKER, ChangeColor );
-        SendMessage( hCurScintilla, SCI_MARKERSETBACK, SAVE_MARKER, SaveColor );
+        // Color
+        SendMessage( hCurScintilla, SCI_MARKERSETFORE, CHANGE_MARKER,
+                     g_ChangeColor );
+        SendMessage( hCurScintilla, SCI_MARKERSETFORE, SAVE_MARKER, g_SaveColor );
+        SendMessage( hCurScintilla, SCI_MARKERSETBACK, CHANGE_MARKER,
+                     g_ChangeColor );
+        SendMessage( hCurScintilla, SCI_MARKERSETBACK, SAVE_MARKER, g_SaveColor );
 
+        // Style
         SendMessage( hCurScintilla, SCI_MARKERDEFINE, CHANGE_MARKER,
-                     SC_MARK_FULLRECT );
+                     g_ChangeMarkStyle );
         SendMessage( hCurScintilla, SCI_MARKERDEFINE, SAVE_MARKER,
-                     SC_MARK_FULLRECT );
+                     g_SaveMarkStyle );
     }
 }
 
@@ -262,11 +302,14 @@ void gotoNextChange()
     int pos = ( int )::SendMessage( hCurScintilla, SCI_GETCURRENTPOS, 0, 0 );
     int searchStart = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
                                             pos, 0 );
+
     while ( true )
     {
         line = findNextMark( hCurScintilla, searchStart + 1, CHANGE_MASK );
+
         if ( line == -1 )
             break;
+
         if ( line == searchStart + 1 )
             searchStart++;
         else
@@ -292,8 +335,10 @@ void gotoPrevChange()
     while ( true )
     {
         line = findPrevMark( hCurScintilla, searchStart - 1, CHANGE_MASK );
+
         if ( line == -1 )
             break;
+
         if ( line == searchStart - 1 )
             searchStart--;
         else
@@ -320,7 +365,8 @@ int AddMarkFromLine( HWND hCurScintilla, int line )
     else if ( state != 0 )
         return markHandle;
 
-    markHandle = ( int )::SendMessage( hCurScintilla, SCI_MARKERADD, line, CHANGE_MARKER );
+    markHandle = ( int )::SendMessage( hCurScintilla, SCI_MARKERADD, line,
+                                       CHANGE_MARKER );
 
     return markHandle;
 }
