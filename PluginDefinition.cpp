@@ -291,6 +291,30 @@ void DestroyPlugin()
         SendMessage( hCurScintilla, SCI_SETMARGINTYPEN, DEFAULT_MARGIN, 0 );
         SendMessage( hCurScintilla, SCI_SETMARGINWIDTHN, DEFAULT_MARGIN, 0 );
     }
+
+    // Get open files
+    TCHAR  **buffer;
+    long filecount = ( long )::SendMessage( nppData._nppHandle, NPPM_GETNBOPENFILES, 0,
+                                    ( LPARAM )ALL_OPEN_FILES );
+    buffer = new TCHAR*[filecount];
+
+    for ( int i = 0; i < filecount; i++ )
+        buffer[i] = new TCHAR[MAX_PATH];
+
+    SendMessage( nppData._nppHandle, NPPM_GETOPENFILENAMES, ( WPARAM )buffer,
+                   ( LPARAM )filecount );
+
+    for ( int i = 0; i < filecount; i++ )
+    {
+        SendMessage( nppData._nppHandle, NPPM_DOOPEN, 0, ( LPARAM )buffer[i] );
+        SendMessage( ScintillaArr[0], SCI_MARKERDELETEALL, CHANGE_MARKER, 0 );
+        SendMessage( ScintillaArr[0], SCI_MARKERDELETEALL, SAVE_MARKER, 0 );
+    }
+
+    // Cleanup
+    for ( int i = 0; i < filecount; i++ )
+        delete []buffer[i];
+    delete []buffer;
 }
 
 void clearAllCF()
