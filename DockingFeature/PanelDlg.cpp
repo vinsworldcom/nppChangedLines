@@ -20,15 +20,33 @@
 #include "resource.h"
 
 extern NppData nppData;
-extern bool g_enabled;
 extern HWND hDialog;
+
+extern bool g_enabled;
+extern int  g_Width;
+extern long g_ChangeColor;
+extern long g_SaveColor;
+extern int  g_ChangeMarkStyle;
+extern int  g_SaveMarkStyle;
+
+int getMarkerType( int marker )
+{
+    switch ( marker )
+    {
+        case SC_MARK_FULLRECT:
+            return Default;
+        case SC_MARK_ARROW:
+            return Arrow;
+        case SC_MARK_BACKGROUND:
+            return Highlight;
+        default:
+            return -1;
+    }
+}
 
 INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                                        LPARAM lParam )
 {
-
-    ::SendMessage( GetDlgItem( hDialog, IDC_CHK1 ), BM_SETCHECK, ( LPARAM )( g_enabled ? 1 : 0 ), 0 );
-
     switch ( message )
     {
         case WM_COMMAND :
@@ -55,12 +73,115 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                     clearAllCF();
                     return TRUE;
                 }
+
+                case MAKELONG( IDC_EDT1, EN_KILLFOCUS ) :
+                {
+                    BOOL isSuccessful;
+                    int val = ( int )::GetDlgItemInt( _hSelf, IDC_EDT1, &isSuccessful, FALSE );
+
+                    if ( val >= 1 && val <= 100 )
+                    {
+                        g_Width = val;
+                        updateWidth();
+                    }
+                    return TRUE;
+                }
+                case IDC_BTN4 :
+                {
+                    COLORREF rgbCustom[16] = {0};
+                    CHOOSECOLOR cc = {sizeof( CHOOSECOLOR )};
+                
+                    cc.Flags        = CC_RGBINIT | CC_FULLOPEN /* | CC_ANYCOLOR */;
+                    cc.hwndOwner    = hDialog;
+                    cc.rgbResult    = g_ChangeColor;
+                    cc.lpCustColors = rgbCustom;
+
+                    if ( ChooseColor( &cc ) )
+                    {
+                        g_ChangeColor = cc.rgbResult;
+                        updateChangeColor();
+                    }
+
+                    return TRUE;
+                }
+                case IDC_BTN6 :
+                {
+                    g_ChangeColor = DefaultChangeColor;
+                    updateChangeColor();
+                    return TRUE;
+                }
+                case MAKELONG( IDC_CBO1, CBN_SELCHANGE ):
+                {
+                    int markType = ( int )::SendMessage( GetDlgItem( hDialog, IDC_CBO1 ), CB_GETCURSEL, 0, 0 );
+                    if ( markType >= 0 && markType <= N_ELEMS(MarkTypeArr) )
+                    {
+                        g_ChangeMarkStyle = MarkTypeArr[markType];
+                        updateChangeStyle();
+                    }
+                        
+                    return TRUE;
+                }
+
+                case IDC_BTN5 :
+                {
+                    COLORREF rgbCustom[16] = {0};
+                    CHOOSECOLOR cc = {sizeof( CHOOSECOLOR )};
+                
+                    cc.Flags        = CC_RGBINIT | CC_FULLOPEN /* | CC_ANYCOLOR */;
+                    cc.hwndOwner    = hDialog;
+                    cc.rgbResult    = g_SaveColor;
+                    cc.lpCustColors = rgbCustom;
+
+                    if ( ChooseColor( &cc ) )
+                    {
+                        g_SaveColor = cc.rgbResult;
+                        updateSaveColor();
+                    }
+
+                    return TRUE;
+                }
+                case IDC_BTN7 :
+                {
+                    g_SaveColor = DefaultSaveColor;
+                    updateSaveColor();
+                    return TRUE;
+                }
+                case MAKELONG( IDC_CBO2, CBN_SELCHANGE ):
+                {
+                    int markType = ( int )::SendMessage( GetDlgItem( hDialog, IDC_CBO2 ), CB_GETCURSEL, 0, 0 );
+                    if ( markType >= 0 && markType <= N_ELEMS(MarkTypeArr) )
+                    {
+                        g_SaveMarkStyle = MarkTypeArr[markType];
+                        updateSaveStyle();
+                    }
+                        
+                    return TRUE;
+                }
+
             }
             return FALSE;
+        }
+
+        case WM_INITDIALOG:
+        {
+            TCHAR strHint[500] = {0};
+            wsprintf( strHint, TEXT( "%d" ), g_Width );
+
+            SendMessage( GetDlgItem( hDialog, IDC_CHK1 ), BM_SETCHECK, ( LPARAM )( g_enabled ? 1 : 0 ), 0 );
+            SendMessage( GetDlgItem( hDialog, IDC_EDT1 ), WM_SETTEXT, 0, ( WPARAM )strHint );
+
+            SendMessage( GetDlgItem( hDialog, IDC_CBO1 ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Default" ) );
+            SendMessage( GetDlgItem( hDialog, IDC_CBO1 ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Arrow" ) );
+            SendMessage( GetDlgItem( hDialog, IDC_CBO1 ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Highlight" ) );
+            SendMessage( GetDlgItem( hDialog, IDC_CBO1 ), CB_SETCURSEL, getMarkerType( g_ChangeMarkStyle ), 0 );
+
+            SendMessage( GetDlgItem( hDialog, IDC_CBO2 ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Default" ) );
+            SendMessage( GetDlgItem( hDialog, IDC_CBO2 ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Arrow" ) );
+            SendMessage( GetDlgItem( hDialog, IDC_CBO2 ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Highlight" ) );
+            SendMessage( GetDlgItem( hDialog, IDC_CBO2 ), CB_SETCURSEL, getMarkerType( g_SaveMarkStyle ), 0 );
         }
 
         default :
             return DockingDlgInterface::run_dlgProc( message, wParam, lParam );
     }
 }
-
