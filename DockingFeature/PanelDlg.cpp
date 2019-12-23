@@ -44,6 +44,32 @@ int getMarkerType( int marker )
     }
 }
 
+void refreshDialog()
+{
+    TCHAR strHint[500] = {0};
+    wsprintf( strHint, TEXT( "%d" ), g_Width );
+   
+    SendMessage( GetDlgItem( hDialog, IDC_CHK1 ), BM_SETCHECK, ( LPARAM )( g_enabled ? 1 : 0 ), 0 );
+    SendMessage( GetDlgItem( hDialog, IDC_EDT1 ), WM_SETTEXT, 0, ( WPARAM )strHint );
+   
+    SendMessage( GetDlgItem( hDialog, IDC_CBO1 ), CB_SETCURSEL, getMarkerType( g_ChangeMarkStyle ), 0 );
+   
+    SendMessage( GetDlgItem( hDialog, IDC_CBO2 ), CB_SETCURSEL, getMarkerType( g_SaveMarkStyle ), 0 );
+}
+
+void initDialog()
+{
+    SendMessage( GetDlgItem( hDialog, IDC_CBO1 ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Default" ) );
+    SendMessage( GetDlgItem( hDialog, IDC_CBO1 ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Arrow" ) );
+    SendMessage( GetDlgItem( hDialog, IDC_CBO1 ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Highlight" ) );
+
+    SendMessage( GetDlgItem( hDialog, IDC_CBO2 ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Default" ) );
+    SendMessage( GetDlgItem( hDialog, IDC_CBO2 ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Arrow" ) );
+    SendMessage( GetDlgItem( hDialog, IDC_CBO2 ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Highlight" ) );
+
+    refreshDialog();    
+}
+
 INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                                        LPARAM lParam )
 {
@@ -74,7 +100,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                     return TRUE;
                 }
 
-                case MAKELONG( IDC_EDT1, EN_KILLFOCUS ) :
+                case MAKELONG( IDC_EDT1, EN_CHANGE ) :
                 {
                     BOOL isSuccessful;
                     int val = ( int )::GetDlgItemInt( _hSelf, IDC_EDT1, &isSuccessful, FALSE );
@@ -116,7 +142,15 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                     if ( markType >= 0 && markType <= N_ELEMS(MarkTypeArr) )
                     {
                         g_ChangeMarkStyle = MarkTypeArr[markType];
+                        if ( markType == Arrow )
+                        {
+                            if ( g_Width < DefaultArrowWidth ){
+                                g_Width = DefaultArrowWidth;
+                                updateWidth();
+                            }
+                        }
                         updateChangeStyle();
+                        refreshDialog();
                     }
                         
                     return TRUE;
@@ -152,7 +186,15 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                     if ( markType >= 0 && markType <= N_ELEMS(MarkTypeArr) )
                     {
                         g_SaveMarkStyle = MarkTypeArr[markType];
+                        if ( markType == Arrow )
+                        {
+                            if ( g_Width < DefaultArrowWidth ){
+                                g_Width = DefaultArrowWidth;
+                                updateWidth();
+                            }
+                        }
                         updateSaveStyle();
+                        refreshDialog();
                     }
                         
                     return TRUE;
@@ -164,21 +206,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
 
         case WM_INITDIALOG:
         {
-            TCHAR strHint[500] = {0};
-            wsprintf( strHint, TEXT( "%d" ), g_Width );
-
-            SendMessage( GetDlgItem( hDialog, IDC_CHK1 ), BM_SETCHECK, ( LPARAM )( g_enabled ? 1 : 0 ), 0 );
-            SendMessage( GetDlgItem( hDialog, IDC_EDT1 ), WM_SETTEXT, 0, ( WPARAM )strHint );
-
-            SendMessage( GetDlgItem( hDialog, IDC_CBO1 ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Default" ) );
-            SendMessage( GetDlgItem( hDialog, IDC_CBO1 ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Arrow" ) );
-            SendMessage( GetDlgItem( hDialog, IDC_CBO1 ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Highlight" ) );
-            SendMessage( GetDlgItem( hDialog, IDC_CBO1 ), CB_SETCURSEL, getMarkerType( g_ChangeMarkStyle ), 0 );
-
-            SendMessage( GetDlgItem( hDialog, IDC_CBO2 ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Default" ) );
-            SendMessage( GetDlgItem( hDialog, IDC_CBO2 ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Arrow" ) );
-            SendMessage( GetDlgItem( hDialog, IDC_CBO2 ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Highlight" ) );
-            SendMessage( GetDlgItem( hDialog, IDC_CBO2 ), CB_SETCURSEL, getMarkerType( g_SaveMarkStyle ), 0 );
+            initDialog();
         }
 
         default :
