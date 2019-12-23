@@ -23,6 +23,7 @@ extern NppData nppData;
 extern HWND hDialog;
 
 extern bool g_enabled;
+extern bool g_GotoIncSave;
 extern int  g_Width;
 extern long g_ChangeColor;
 extern long g_SaveColor;
@@ -46,14 +47,14 @@ int getMarkerType( int marker )
 
 void refreshDialog()
 {
+    SendMessage( GetDlgItem( hDialog, IDC_CHK1 ), BM_SETCHECK, ( LPARAM )( g_enabled ? 1 : 0 ), 0 );
+    SendMessage( GetDlgItem( hDialog, IDC_CHK2 ), BM_SETCHECK, ( LPARAM )( g_GotoIncSave ? 1 : 0 ), 0 );
+
     TCHAR strHint[500] = {0};
     wsprintf( strHint, TEXT( "%d" ), g_Width );
-   
-    SendMessage( GetDlgItem( hDialog, IDC_CHK1 ), BM_SETCHECK, ( LPARAM )( g_enabled ? 1 : 0 ), 0 );
     SendMessage( GetDlgItem( hDialog, IDC_EDT1 ), WM_SETTEXT, 0, ( WPARAM )strHint );
-   
+
     SendMessage( GetDlgItem( hDialog, IDC_CBO1 ), CB_SETCURSEL, getMarkerType( g_ChangeMarkStyle ), 0 );
-   
     SendMessage( GetDlgItem( hDialog, IDC_CBO2 ), CB_SETCURSEL, getMarkerType( g_SaveMarkStyle ), 0 );
 }
 
@@ -92,6 +93,17 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                 case IDC_BTN2 :
                 {
                     gotoPrevChange();
+                    return TRUE;
+                }
+                case IDC_CHK2 :
+                {
+                    int check = ( int )::SendMessage( GetDlgItem( hDialog, IDC_CHK2 ), BM_GETCHECK, 0, 0 );
+                    
+                    if( check & BST_CHECKED )
+                        g_GotoIncSave = true;
+                    else
+                        g_GotoIncSave = false;
+
                     return TRUE;
                 }
                 case IDC_BTN3 :
