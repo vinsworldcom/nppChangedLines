@@ -27,6 +27,7 @@
 const TCHAR configFileName[]     = TEXT( "ChangedLines.ini" );
 const TCHAR sectionName[]        = TEXT( "Settings" );
 const TCHAR iniKeyEnabled[]      = TEXT( "Enabled" );
+const TCHAR iniKeyGotoIncSave[]  = TEXT( "GotoIncludeSave" );
 const TCHAR iniKeyWidth[]        = TEXT( "Width" );
 const TCHAR iniKeyColorChange[]  = TEXT( "ColorChange" );
 const TCHAR iniKeyColorSave[]    = TEXT( "ColorSave" );
@@ -34,7 +35,8 @@ const TCHAR iniKeyMarkerChange[] = TEXT( "MarkerChange" );
 const TCHAR iniKeyMarkerSave[]   = TEXT( "MarkerSave" );
 
 DemoDlg _Panel;
-bool g_enabled         = false;
+bool g_enabled         = true;
+bool g_GotoIncSave     = DefaultGotoIncSave;
 int  g_Width           = DefaultWidth;
 long g_ChangeColor     = DefaultChangeColor;
 long g_SaveColor       = DefaultSaveColor;
@@ -74,6 +76,8 @@ void pluginCleanUp()
 
     ::WritePrivateProfileString( sectionName, iniKeyEnabled,
                                  g_enabled ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
+    ::WritePrivateProfileString( sectionName, iniKeyGotoIncSave,
+                                 g_GotoIncSave ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
     _itot_s( g_Width, buf, NUMDIGIT, 10 );
     ::WritePrivateProfileString( sectionName, iniKeyWidth, buf,
                                  iniFilePath );
@@ -112,7 +116,9 @@ void commandMenuInit()
     PathAppend( iniFilePath, configFileName );
 
     // get the parameter value from plugin config
-    g_enabled         = ::GetPrivateProfileInt( sectionName, iniKeyEnabled, 0,
+    g_enabled         = ::GetPrivateProfileInt( sectionName, iniKeyEnabled, 1,
+                        iniFilePath );
+    g_GotoIncSave     = ::GetPrivateProfileInt( sectionName, iniKeyGotoIncSave, 0,
                         iniFilePath );
     g_Width           = ::GetPrivateProfileInt( sectionName, iniKeyWidth,
                         DefaultWidth, iniFilePath );
@@ -291,6 +297,30 @@ void DestroyPlugin()
         SendMessage( hCurScintilla, SCI_SETMARGINTYPEN, DEFAULT_MARGIN, 0 );
         SendMessage( hCurScintilla, SCI_SETMARGINWIDTHN, DEFAULT_MARGIN, 0 );
     }
+
+    // Get open files
+    TCHAR  **buffer;
+    long filecount = ( long )::SendMessage( nppData._nppHandle, NPPM_GETNBOPENFILES, 0,
+                                    ( LPARAM )ALL_OPEN_FILES );
+    buffer = new TCHAR*[filecount];
+
+    for ( int i = 0; i < filecount; i++ )
+        buffer[i] = new TCHAR[MAX_PATH];
+
+    SendMessage( nppData._nppHandle, NPPM_GETOPENFILENAMES, ( WPARAM )buffer,
+                   ( LPARAM )filecount );
+
+    for ( int i = 0; i < filecount; i++ )
+    {
+        SendMessage( nppData._nppHandle, NPPM_DOOPEN, 0, ( LPARAM )buffer[i] );
+        SendMessage( ScintillaArr[0], SCI_MARKERDELETEALL, CHANGE_MARKER, 0 );
+        SendMessage( ScintillaArr[0], SCI_MARKERDELETEALL, SAVE_MARKER, 0 );
+    }
+
+    // Cleanup
+    for ( int i = 0; i < filecount; i++ )
+        delete []buffer[i];
+    delete []buffer;
 }
 
 void clearAllCF()
@@ -331,9 +361,12 @@ void gotoNextChange()
     int searchStart = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
                                             pos, 0 );
 
+    int mask = CHANGE_MASK;
+    if ( g_GotoIncSave )
+        mask |= SAVE_MASK;
     while ( true )
     {
-        line = findNextMark( hCurScintilla, searchStart + 1, CHANGE_MASK );
+        line = findNextMark( hCurScintilla, searchStart + 1, mask );
 
         if ( line == -1 )
             break;
@@ -345,7 +378,7 @@ void gotoNextChange()
     }
 
     if ( line == -1 )
-        line = findNextMark( hCurScintilla, 0, CHANGE_MASK );
+        line = findNextMark( hCurScintilla, 0, mask );
 
     if ( line != -1 )
         SendMessage( hCurScintilla, SCI_GOTOLINE, line, 0 );
@@ -360,9 +393,12 @@ void gotoPrevChange()
     int searchStart = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
                                             pos, 0 );
 
+    int mask = CHANGE_MASK;
+    if ( g_GotoIncSave )
+        mask |= SAVE_MASK;
     while ( true )
     {
-        line = findPrevMark( hCurScintilla, searchStart - 1, CHANGE_MASK );
+        line = findPrevMark( hCurScintilla, searchStart - 1, mask );
 
         if ( line == -1 )
             break;
@@ -376,7 +412,7 @@ void gotoPrevChange()
     if ( line == -1 )
     {
         int end = ( int )::SendMessage( hCurScintilla, SCI_GETLINECOUNT, 0, 0 );
-        line = findPrevMark( hCurScintilla, end, CHANGE_MASK );
+        line = findPrevMark( hCurScintilla, end, mask );
     }
 
     if ( line != -1 )
