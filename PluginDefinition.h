@@ -83,6 +83,20 @@ const int SAVE_MARKER    = 11;
 const int CHANGE_MASK    = ( 1 << CHANGE_MARKER );
 const int SAVE_MASK      = ( 1 << SAVE_MARKER );
 
+#define N_ELEMS(x) (sizeof(x) / sizeof((x)[0]))
+const int MarkTypeArr[] =
+{
+    SC_MARK_FULLRECT,
+    SC_MARK_ARROW,
+    SC_MARK_BACKGROUND
+};
+enum MarkType
+{
+    Default = 0,
+    Arrow,
+    Highlight
+};
+
 HWND getCurScintilla();
 void updateWidth();
 void updateChangeColor();
