@@ -47,12 +47,12 @@ int getMarkerType( int marker )
 
 void refreshDialog()
 {
-    SendMessage( GetDlgItem( hDialog, IDC_CHK1 ), BM_SETCHECK, ( LPARAM )( g_enabled ? 1 : 0 ), 0 );
-    SendMessage( GetDlgItem( hDialog, IDC_CHK2 ), BM_SETCHECK, ( LPARAM )( g_GotoIncSave ? 1 : 0 ), 0 );
+    SendMessage( GetDlgItem( hDialog, IDC_CHK1 ), BM_SETCHECK, ( WPARAM )( g_enabled ? 1 : 0 ), 0 );
+    SendMessage( GetDlgItem( hDialog, IDC_CHK2 ), BM_SETCHECK, ( WPARAM )( g_GotoIncSave ? 1 : 0 ), 0 );
 
     TCHAR strHint[500] = {0};
     wsprintf( strHint, TEXT( "%d" ), g_Width );
-    SendMessage( GetDlgItem( hDialog, IDC_EDT1 ), WM_SETTEXT, 0, ( WPARAM )strHint );
+    SendMessage( GetDlgItem( hDialog, IDC_EDT1 ), WM_SETTEXT, 0, ( LPARAM )strHint );
 
     SendMessage( GetDlgItem( hDialog, IDC_CBO1 ), CB_SETCURSEL, getMarkerType( g_ChangeMarkStyle ), 0 );
     SendMessage( GetDlgItem( hDialog, IDC_CBO2 ), CB_SETCURSEL, getMarkerType( g_SaveMarkStyle ), 0 );
