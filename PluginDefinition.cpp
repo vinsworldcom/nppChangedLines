@@ -28,6 +28,7 @@ const TCHAR configFileName[]     = TEXT( "ChangedLines.ini" );
 const TCHAR sectionName[]        = TEXT( "Settings" );
 const TCHAR iniKeyEnabled[]      = TEXT( "Enabled" );
 const TCHAR iniKeyGotoIncSave[]  = TEXT( "GotoIncludeSave" );
+const TCHAR iniKeyMargin[]       = TEXT( "Margin" );
 const TCHAR iniKeyWidth[]        = TEXT( "Width" );
 const TCHAR iniKeyColorChange[]  = TEXT( "ColorChange" );
 const TCHAR iniKeyColorSave[]    = TEXT( "ColorSave" );
@@ -37,6 +38,7 @@ const TCHAR iniKeyMarkerSave[]   = TEXT( "MarkerSave" );
 DemoDlg _Panel;
 bool g_enabled         = true;
 bool g_GotoIncSave     = DefaultGotoIncSave;
+int  g_Margin          = DefaultMargin;
 int  g_Width           = DefaultWidth;
 long g_ChangeColor     = DefaultChangeColor;
 long g_SaveColor       = DefaultSaveColor;
@@ -78,6 +80,9 @@ void pluginCleanUp()
                                  g_enabled ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
     ::WritePrivateProfileString( sectionName, iniKeyGotoIncSave,
                                  g_GotoIncSave ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
+    _itot_s( g_Margin, buf, NUMDIGIT, 10 );
+    ::WritePrivateProfileString( sectionName, iniKeyMargin, buf,
+                                 iniFilePath );
     _itot_s( g_Width, buf, NUMDIGIT, 10 );
     ::WritePrivateProfileString( sectionName, iniKeyWidth, buf,
                                  iniFilePath );
@@ -120,6 +125,10 @@ void commandMenuInit()
                         iniFilePath );
     g_GotoIncSave     = ::GetPrivateProfileInt( sectionName, iniKeyGotoIncSave, 0,
                         iniFilePath );
+    g_Margin          = ::GetPrivateProfileInt( sectionName, iniKeyMargin,
+                        DefaultMargin, iniFilePath );
+    if ( g_Margin >= MAX_MARGINS )
+        g_Margin = DefaultMargin;
     g_Width           = ::GetPrivateProfileInt( sectionName, iniKeyWidth,
                         DefaultWidth, iniFilePath );
     g_ChangeColor     = ::GetPrivateProfileInt( sectionName, iniKeyColorChange,
@@ -231,7 +240,7 @@ void UpdatePlugin( UINT Msg, WPARAM wParam, LPARAM lParam )
 
 void updateWidth()
 {
-    UpdatePlugin( SCI_SETMARGINWIDTHN, DEFAULT_MARGIN, g_Width );
+    UpdatePlugin( SCI_SETMARGINWIDTHN, g_Margin, g_Width );
 }
 
 void updateChangeColor()
@@ -261,19 +270,23 @@ void InitPlugin()
 {
     HWND ScintillaArr[] = { nppData._scintillaMainHandle, nppData._scintillaSecondHandle };
 
+    int margins = ( int )::SendMessage( getCurScintilla(), SCI_GETMARGINS, 0, 0 );
+    if ( margins <= g_Margin )
+        UpdatePlugin( SCI_SETMARGINS, ( g_Margin + 1 ), 0 );
+
     for ( int i = 0; i < 2; i++ )
     {
         HWND hCurScintilla = ScintillaArr[i];
 
-        SendMessage( hCurScintilla, SCI_SETMARGINTYPEN, DEFAULT_MARGIN,
+        SendMessage( hCurScintilla, SCI_SETMARGINTYPEN, g_Margin,
                      SC_MARGIN_SYMBOL );
       
         // Mask
         int OriMask = ( int )::SendMessage( hCurScintilla, SCI_GETMARGINMASKN,
-                                            DEFAULT_MARGIN, 0 );
+                                            g_Margin, 0 );
         int tmpMask = 0;
         tmpMask = OriMask | CHANGE_MASK | SAVE_MASK;
-        SendMessage( hCurScintilla, SCI_SETMARGINMASKN, DEFAULT_MARGIN, tmpMask );
+        SendMessage( hCurScintilla, SCI_SETMARGINMASKN, g_Margin, tmpMask );
     }
 
     updateWidth();
@@ -294,8 +307,8 @@ void DestroyPlugin()
         SendMessage( hCurScintilla, SCI_MARKERDELETEALL, CHANGE_MARKER, 0 );
         SendMessage( hCurScintilla, SCI_MARKERDELETEALL, SAVE_MARKER, 0 );
 
-        SendMessage( hCurScintilla, SCI_SETMARGINTYPEN, DEFAULT_MARGIN, 0 );
-        SendMessage( hCurScintilla, SCI_SETMARGINWIDTHN, DEFAULT_MARGIN, 0 );
+        SendMessage( hCurScintilla, SCI_SETMARGINTYPEN, g_Margin, 0 );
+        SendMessage( hCurScintilla, SCI_SETMARGINWIDTHN, g_Margin, 0 );
     }
 
     // Get open files

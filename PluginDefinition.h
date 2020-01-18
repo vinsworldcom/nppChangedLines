@@ -76,10 +76,11 @@ bool setCommand( size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc,
 #define DefaultChangeStyle SC_MARK_FULLRECT
 #define DefaultSaveStyle   SC_MARK_FULLRECT
 #define DefaultGotoIncSave 0
+#define DefaultMargin      4
 #define DefaultWidth       4
 #define DefaultArrowWidth  14
 #define NUMDIGIT           64
-const int DEFAULT_MARGIN = 4;
+const int MAX_MARGINS    = 10;
 const int CHANGE_MARKER  = 10;
 const int SAVE_MARKER    = 11;
 const int CHANGE_MASK    = ( 1 << CHANGE_MARKER );
