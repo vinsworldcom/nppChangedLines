@@ -17,6 +17,7 @@
 
 #include "PanelDlg.h"
 #include "../PluginDefinition.h"
+#include "SettingsDlg.h"
 #include "resource.h"
 
 #include <commctrl.h>
@@ -26,11 +27,6 @@ extern HWND hDialog;
 
 extern bool g_enabled;
 extern bool g_GotoIncSave;
-extern int  g_Width;
-extern long g_ChangeColor;
-extern long g_SaveColor;
-extern int  g_ChangeMarkStyle;
-extern int  g_SaveMarkStyle;
 
 const int WS_TOOLBARSTYLE = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TBSTYLE_TOOLTIPS |TBSTYLE_FLAT | CCS_TOP | BTNS_AUTOSIZE | CCS_NOPARENTALIGN | CCS_NORESIZE | CCS_NODIVIDER;
                          /* WS_CHILD | WS_VISIBLE |                                                                                                                    CCS_NORESIZE |                CCS_ADJUSTABLE */
@@ -79,32 +75,10 @@ void imageToolbar( HINSTANCE hInst, HWND hWndToolbar, UINT ToolbarID, const int 
     SendMessage( hWndToolbar, TB_SETIMAGELIST, 0, ( LPARAM )himlToolBar1 );
 }
 
-int getMarkerType( int marker )
-{
-    switch ( marker )
-    {
-        case SC_MARK_FULLRECT:
-            return Default;
-        case SC_MARK_ARROW:
-            return Arrow;
-        case SC_MARK_BACKGROUND:
-            return Highlight;
-        default:
-            return -1;
-    }
-}
-
 void refreshDialog()
 {
     SendMessage( GetDlgItem( hDialog, IDC_CHK_ENABLED ), BM_SETCHECK, ( WPARAM )( g_enabled ? 1 : 0 ), 0 );
     SendMessage( GetDlgItem( hDialog, IDC_CHK_INCSAVES ), BM_SETCHECK, ( WPARAM )( g_GotoIncSave ? 1 : 0 ), 0 );
-
-    TCHAR strHint[500] = {0};
-    wsprintf( strHint, TEXT( "%d" ), g_Width );
-    SendMessage( GetDlgItem( hDialog, IDC_EDT1 ), WM_SETTEXT, 0, ( LPARAM )strHint );
-
-    SendMessage( GetDlgItem( hDialog, IDC_CBO_MARKCHANGE ), CB_SETCURSEL, getMarkerType( g_ChangeMarkStyle ), 0 );
-    SendMessage( GetDlgItem( hDialog, IDC_CBO_MARKSAVE ), CB_SETCURSEL, getMarkerType( g_SaveMarkStyle ), 0 );
 }
 
 void initDialog()
@@ -134,15 +108,7 @@ void initDialog()
 
     imageToolbar( GetModuleHandle( TEXT("ChangedLines.dll" ) ), hWndToolbar1, IDB_TOOLBAR1, numButtons1 );
 
-    SendMessage( GetDlgItem( hDialog, IDC_CBO_MARKCHANGE ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Default" ) );
-    SendMessage( GetDlgItem( hDialog, IDC_CBO_MARKCHANGE ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Arrow" ) );
-    SendMessage( GetDlgItem( hDialog, IDC_CBO_MARKCHANGE ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Highlight" ) );
-
-    SendMessage( GetDlgItem( hDialog, IDC_CBO_MARKSAVE ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Default" ) );
-    SendMessage( GetDlgItem( hDialog, IDC_CBO_MARKSAVE ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Arrow" ) );
-    SendMessage( GetDlgItem( hDialog, IDC_CBO_MARKSAVE ), CB_ADDSTRING, 0, ( LPARAM )TEXT( "Highlight" ) );
-
-    refreshDialog();    
+    refreshDialog();
 }
 
 INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
@@ -172,7 +138,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                 case IDC_CHK_INCSAVES :
                 {
                     int check = ( int )::SendMessage( GetDlgItem( hDialog, IDC_CHK_INCSAVES ), BM_GETCHECK, 0, 0 );
-                    
+
                     if( check & BST_CHECKED )
                         g_GotoIncSave = true;
                     else
@@ -187,110 +153,9 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                 }
                 case IDC_BTN_SETTINGS :
                 {
-                    // doSettings();
+                    doSettings();
                     return TRUE;
                 }
-
-                case MAKELONG( IDC_EDT1, EN_CHANGE ) :
-                {
-                    BOOL isSuccessful;
-                    int val = ( int )::GetDlgItemInt( _hSelf, IDC_EDT1, &isSuccessful, FALSE );
-
-                    if ( val >= 1 && val <= 100 )
-                    {
-                        g_Width = val;
-                        updateWidth();
-                    }
-                    return TRUE;
-                }
-                case IDC_BTN_COLORCHANGE :
-                {
-                    COLORREF rgbCustom[16] = {0};
-                    CHOOSECOLOR cc = {sizeof( CHOOSECOLOR )};
-                
-                    cc.Flags        = CC_RGBINIT | CC_FULLOPEN /* | CC_ANYCOLOR */;
-                    cc.hwndOwner    = hDialog;
-                    cc.rgbResult    = g_ChangeColor;
-                    cc.lpCustColors = rgbCustom;
-
-                    if ( ChooseColor( &cc ) )
-                    {
-                        g_ChangeColor = cc.rgbResult;
-                        updateChangeColor();
-                    }
-
-                    return TRUE;
-                }
-                case IDC_BTN_COLORCHANGEDEF :
-                {
-                    g_ChangeColor = DefaultChangeColor;
-                    updateChangeColor();
-                    return TRUE;
-                }
-                case MAKELONG( IDC_CBO_MARKCHANGE, CBN_SELCHANGE ):
-                {
-                    int markType = ( int )::SendMessage( GetDlgItem( hDialog, IDC_CBO_MARKCHANGE ), CB_GETCURSEL, 0, 0 );
-                    if ( markType >= 0 && markType <= N_ELEMS(MarkTypeArr) )
-                    {
-                        g_ChangeMarkStyle = MarkTypeArr[markType];
-                        if ( markType == Arrow )
-                        {
-                            if ( g_Width < DefaultArrowWidth ){
-                                g_Width = DefaultArrowWidth;
-                                updateWidth();
-                            }
-                        }
-                        updateChangeStyle();
-                        refreshDialog();
-                    }
-                        
-                    return TRUE;
-                }
-
-                case IDC_BTN_COLORSAVE :
-                {
-                    COLORREF rgbCustom[16] = {0};
-                    CHOOSECOLOR cc = {sizeof( CHOOSECOLOR )};
-                
-                    cc.Flags        = CC_RGBINIT | CC_FULLOPEN /* | CC_ANYCOLOR */;
-                    cc.hwndOwner    = hDialog;
-                    cc.rgbResult    = g_SaveColor;
-                    cc.lpCustColors = rgbCustom;
-
-                    if ( ChooseColor( &cc ) )
-                    {
-                        g_SaveColor = cc.rgbResult;
-                        updateSaveColor();
-                    }
-
-                    return TRUE;
-                }
-                case IDC_BTN_COLORSAVEDEF :
-                {
-                    g_SaveColor = DefaultSaveColor;
-                    updateSaveColor();
-                    return TRUE;
-                }
-                case MAKELONG( IDC_CBO_MARKSAVE, CBN_SELCHANGE ):
-                {
-                    int markType = ( int )::SendMessage( GetDlgItem( hDialog, IDC_CBO_MARKSAVE ), CB_GETCURSEL, 0, 0 );
-                    if ( markType >= 0 && markType <= N_ELEMS(MarkTypeArr) )
-                    {
-                        g_SaveMarkStyle = MarkTypeArr[markType];
-                        if ( markType == Arrow )
-                        {
-                            if ( g_Width < DefaultArrowWidth ){
-                                g_Width = DefaultArrowWidth;
-                                updateWidth();
-                            }
-                        }
-                        updateSaveStyle();
-                        refreshDialog();
-                    }
-                        
-                    return TRUE;
-                }
-
             }
             return FALSE;
         }

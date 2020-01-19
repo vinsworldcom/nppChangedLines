@@ -38,7 +38,7 @@ const TCHAR NPP_PLUGIN_NAME[] = TEXT( "Changed &Lines" );
 //
 // Here define the number of your plugin commands
 //
-const int nbFunc = 6;
+const int nbFunc = 8;
 
 //
 // Initialization of your plugin data

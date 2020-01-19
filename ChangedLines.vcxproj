@@ -158,6 +158,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DockingFeature\PanelDlg.cpp" />
+    <ClCompile Include="DockingFeature\SettingsDlg.cpp" />
     <ClCompile Include="DockingFeature\StaticDialog.cpp" />
     <ClCompile Include="ChangedLines.cpp" />
     <ClCompile Include="PluginDefinition.cpp" />
@@ -168,6 +169,7 @@
     <ClInclude Include="DockingFeature\dockingResource.h" />
     <ClInclude Include="DockingFeature\PanelDlg.h" />
     <ClInclude Include="DockingFeature\resource.h" />
+    <ClInclude Include="DockingFeature\SettingsDlg.h" />
     <ClInclude Include="DockingFeature\StaticDialog.h" />
     <ClInclude Include="DockingFeature\Window.h" />
     <ClInclude Include="menuCmdID.h" />

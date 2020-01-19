@@ -16,13 +16,14 @@
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 #include "PluginDefinition.h"
+#include "DockingFeature/PanelDlg.h"
+#include "DockingFeature/SettingsDlg.h"
 #include "menuCmdID.h"
-
 #include "stdafx.h"
+
 #include <string>
 #include <vector>
 #include <shlwapi.h>
-#include "DockingFeature/PanelDlg.h"
 
 const TCHAR configFileName[]     = TEXT( "ChangedLines.ini" );
 const TCHAR sectionName[]        = TEXT( "Settings" );
@@ -36,15 +37,6 @@ const TCHAR iniKeyMarkerChange[] = TEXT( "MarkerChange" );
 const TCHAR iniKeyMarkerSave[]   = TEXT( "MarkerSave" );
 
 DemoDlg _Panel;
-bool g_enabled         = true;
-bool g_GotoIncSave     = DefaultGotoIncSave;
-int  g_Margin          = DefaultMargin;
-int  g_Width           = DefaultWidth;
-long g_ChangeColor     = DefaultChangeColor;
-long g_SaveColor       = DefaultSaveColor;
-int  g_ChangeMarkStyle = DefaultChangeStyle;
-int  g_SaveMarkStyle   = DefaultSaveStyle;
-
 //
 // The plugin data that Notepad++ needs
 //
@@ -54,8 +46,17 @@ FuncItem funcItem[nbFunc];
 // The data of Notepad++ that you can use in your plugin commands
 //
 NppData nppData;
+HINSTANCE g_hInst;
 
 TCHAR iniFilePath[MAX_PATH];
+bool g_enabled         = true;
+bool g_GotoIncSave     = DefaultGotoIncSave;
+int  g_Margin          = DefaultMargin;
+int  g_Width           = DefaultWidth;
+long g_ChangeColor     = DefaultChangeColor;
+long g_SaveColor       = DefaultSaveColor;
+int  g_ChangeMarkStyle = DefaultChangeStyle;
+int  g_SaveMarkStyle   = DefaultSaveStyle;
 
 #define ENABLE_INDEX 0
 #define DOCKABLE_INDEX 1
@@ -172,6 +173,9 @@ void commandMenuInit()
     setCommand( 4, TEXT( "Goto &Previous Change" ), gotoPrevChange, PreChgKey,
                 false );
     setCommand( 5, TEXT( "&Clear all in Current File" ), clearAllCF, NULL,
+                false );
+    setCommand( 6, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
+    setCommand( 7, TEXT( "Settings" ), doSettings, NULL,
                 false );
 }
 
