@@ -101,11 +101,13 @@ enum MarkType
 };
 
 HWND getCurScintilla();
+int findNextMark( HWND, int, int );
 void updateWidth();
 void updateChangeColor();
 void updateSaveColor();
 void updateChangeStyle();
 void updateSaveStyle();
+void updatePanel();
 void InitPlugin();
 void DestroyPlugin();
 void clearAllCF();

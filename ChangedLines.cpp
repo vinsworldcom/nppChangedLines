@@ -22,8 +22,9 @@
 
 extern FuncItem funcItem[nbFunc];
 extern HINSTANCE g_hInst;
-extern NppData nppData;
-extern bool g_enabled;
+extern NppData   nppData;
+extern bool      g_NppReady;
+extern bool      g_enabled;
 
 static Sci_Position preModifyPos = -1;
 static Sci_Position preModifyLineAdd = -1;
@@ -76,8 +77,16 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
     {
         case NPPN_READY:
         {
+            g_NppReady = true;
             if ( g_enabled )
                 InitPlugin();
+        }
+        break;
+
+        case NPPN_BUFFERACTIVATED:
+        {
+            if ( g_NppReady )
+                updatePanel();
         }
         break;
 

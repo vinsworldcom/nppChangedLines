@@ -15,6 +15,7 @@ extern long g_ChangeColor;
 extern long g_SaveColor;
 extern int  g_ChangeMarkStyle;
 extern int  g_SaveMarkStyle;
+extern bool g_useNppColors;
 
 int getMarkerType( int marker )
 {
@@ -43,6 +44,9 @@ void refreshSettings( HWND hWndDlg )
 
 INT_PTR CALLBACK SettingsDlg(HWND hWndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+    ::SendMessage( GetDlgItem( hWndDlg, IDC_CHK_NPPCOLOR ), BM_SETCHECK,
+                   ( LPARAM )( g_useNppColors ? 1 : 0 ), 0 );
+
     switch(msg)
     {
         case WM_INITDIALOG:
@@ -82,6 +86,22 @@ INT_PTR CALLBACK SettingsDlg(HWND hWndDlg, UINT msg, WPARAM wParam, LPARAM lPara
                 case IDB_OK:
                     PostMessage(hWndDlg, WM_CLOSE, 0, 0);
                     return TRUE;
+
+                case IDC_CHK_NPPCOLOR :
+                {
+                    if ( SendMessage( GetDlgItem( hWndDlg, IDC_CHK_NPPCOLOR ), BM_GETCHECK, 0, 0 ) == BST_CHECKED )
+                    {
+                      SetSysColors();
+                      g_useNppColors = false;
+                    }
+                    else
+                    {
+                      SetNppColors();
+                      g_useNppColors = true;
+                    }
+                    ChangeColors();
+                    return TRUE;
+                }
 
                 case MAKELONG( IDC_EDT_WIDTH, EN_CHANGE ) :
                 {

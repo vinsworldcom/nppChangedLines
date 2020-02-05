@@ -29,12 +29,10 @@
 #define IDI_PLUGINPANEL 2501
 
 #define IDC_CHK_ENABLED        (IDD_PLUGINPANEL + 201)
-
-#define IDC_GRP3               (IDD_PLUGINPANEL + 202)
-#define IDC_CHK_INCSAVES       (IDD_PLUGINPANEL + 205)
+#define IDC_CHK_INCSAVES       (IDD_PLUGINPANEL + 203)
+#define IDC_LSV1               (IDD_PLUGINPANEL + 204)
 
 #define IDB_TOOLBAR1    1600
-
 #define IDB_PAGER1      1701
 
 #define IDC_BTN_PREV           (IDB_TOOLBAR1 + 1)
@@ -49,15 +47,16 @@
 #define IDB_OK                 (IDD_SETTINGS + 1)
 
 #define IDC_EDT_WIDTH          (IDD_SETTINGS + 2)
+#define IDC_CHK_NPPCOLOR       (IDD_SETTINGS + 3)
 
-#define IDC_GRP1               (IDD_SETTINGS + 3)
-#define IDC_BTN_COLORCHANGE    (IDD_SETTINGS + 4)
-#define IDC_BTN_COLORCHANGEDEF (IDD_SETTINGS + 5)
-#define IDC_CBO_MARKCHANGE     (IDD_SETTINGS + 6)
+#define IDC_GRP1               (IDD_SETTINGS + 4)
+#define IDC_BTN_COLORCHANGE    (IDD_SETTINGS + 5)
+#define IDC_BTN_COLORCHANGEDEF (IDD_SETTINGS + 6)
+#define IDC_CBO_MARKCHANGE     (IDD_SETTINGS + 7)
                                                 
-#define IDC_GRP2               (IDD_SETTINGS + 7)
-#define IDC_BTN_COLORSAVE      (IDD_SETTINGS + 8)
-#define IDC_BTN_COLORSAVEDEF   (IDD_SETTINGS + 9)
-#define IDC_CBO_MARKSAVE       (IDD_SETTINGS + 10)
+#define IDC_GRP2               (IDD_SETTINGS + 8)
+#define IDC_BTN_COLORSAVE      (IDD_SETTINGS + 9)
+#define IDC_BTN_COLORSAVEDEF   (IDD_SETTINGS + 10)
+#define IDC_CBO_MARKSAVE       (IDD_SETTINGS + 11)
 
 #endif // RESOURCE_H
