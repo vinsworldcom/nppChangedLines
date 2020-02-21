@@ -16,33 +16,28 @@
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 #include "PluginDefinition.h"
+#include "DockingFeature/PanelDlg.h"
+#include "DockingFeature/SettingsDlg.h"
 #include "menuCmdID.h"
-
 #include "stdafx.h"
+
 #include <string>
 #include <vector>
 #include <shlwapi.h>
-#include "DockingFeature/PanelDlg.h"
 
 const TCHAR configFileName[]     = TEXT( "ChangedLines.ini" );
 const TCHAR sectionName[]        = TEXT( "Settings" );
 const TCHAR iniKeyEnabled[]      = TEXT( "Enabled" );
 const TCHAR iniKeyGotoIncSave[]  = TEXT( "GotoIncludeSave" );
+const TCHAR iniKeyMargin[]       = TEXT( "Margin" );
 const TCHAR iniKeyWidth[]        = TEXT( "Width" );
 const TCHAR iniKeyColorChange[]  = TEXT( "ColorChange" );
 const TCHAR iniKeyColorSave[]    = TEXT( "ColorSave" );
 const TCHAR iniKeyMarkerChange[] = TEXT( "MarkerChange" );
 const TCHAR iniKeyMarkerSave[]   = TEXT( "MarkerSave" );
+const TCHAR iniUseNppColors[]    = TEXT( "UseNppColors" );
 
 DemoDlg _Panel;
-bool g_enabled         = true;
-bool g_GotoIncSave     = DefaultGotoIncSave;
-int  g_Width           = DefaultWidth;
-long g_ChangeColor     = DefaultChangeColor;
-long g_SaveColor       = DefaultSaveColor;
-int  g_ChangeMarkStyle = DefaultChangeStyle;
-int  g_SaveMarkStyle   = DefaultSaveStyle;
-
 //
 // The plugin data that Notepad++ needs
 //
@@ -52,8 +47,19 @@ FuncItem funcItem[nbFunc];
 // The data of Notepad++ that you can use in your plugin commands
 //
 NppData nppData;
+HINSTANCE g_hInst;
 
 TCHAR iniFilePath[MAX_PATH];
+bool g_NppReady        = false;
+bool g_enabled         = true;
+bool g_GotoIncSave     = DefaultGotoIncSave;
+int  g_Margin          = DefaultMargin;
+int  g_Width           = DefaultWidth;
+long g_ChangeColor     = DefaultChangeColor;
+long g_SaveColor       = DefaultSaveColor;
+int  g_ChangeMarkStyle = DefaultChangeStyle;
+int  g_SaveMarkStyle   = DefaultSaveStyle;
+bool g_useNppColors    = false;
 
 #define ENABLE_INDEX 0
 #define DOCKABLE_INDEX 1
@@ -78,6 +84,9 @@ void pluginCleanUp()
                                  g_enabled ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
     ::WritePrivateProfileString( sectionName, iniKeyGotoIncSave,
                                  g_GotoIncSave ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
+    _itot_s( g_Margin, buf, NUMDIGIT, 10 );
+    ::WritePrivateProfileString( sectionName, iniKeyMargin, buf,
+                                 iniFilePath );
     _itot_s( g_Width, buf, NUMDIGIT, 10 );
     ::WritePrivateProfileString( sectionName, iniKeyWidth, buf,
                                  iniFilePath );
@@ -93,6 +102,8 @@ void pluginCleanUp()
     _itot_s( g_SaveMarkStyle, buf, NUMDIGIT, 10 );
     ::WritePrivateProfileString( sectionName, iniKeyMarkerSave, buf,
                                  iniFilePath );
+    ::WritePrivateProfileString( sectionName, iniUseNppColors,
+                                 g_useNppColors ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
 }
 
 //
@@ -120,6 +131,10 @@ void commandMenuInit()
                         iniFilePath );
     g_GotoIncSave     = ::GetPrivateProfileInt( sectionName, iniKeyGotoIncSave, 0,
                         iniFilePath );
+    g_Margin          = ::GetPrivateProfileInt( sectionName, iniKeyMargin,
+                        DefaultMargin, iniFilePath );
+    if ( g_Margin >= MAX_MARGINS )
+        g_Margin = DefaultMargin;
     g_Width           = ::GetPrivateProfileInt( sectionName, iniKeyWidth,
                         DefaultWidth, iniFilePath );
     g_ChangeColor     = ::GetPrivateProfileInt( sectionName, iniKeyColorChange,
@@ -130,6 +145,8 @@ void commandMenuInit()
                         DefaultChangeStyle, iniFilePath );
     g_SaveMarkStyle   = ::GetPrivateProfileInt( sectionName, iniKeyMarkerSave,
                         DefaultSaveStyle, iniFilePath );
+    g_useNppColors    = ::GetPrivateProfileInt( sectionName, iniUseNppColors,
+                                                0, iniFilePath );
 
     //--------------------------------------------//
     //-- STEP 3. CUSTOMIZE YOUR PLUGIN COMMANDS --//
@@ -155,7 +172,7 @@ void commandMenuInit()
 
     setCommand( ENABLE_INDEX, TEXT( "&Enable" ), doEnable, NULL,
                 g_enabled ? true : false );
-    setCommand( DOCKABLE_INDEX, TEXT( "Changed Lines Panel" ), DockableDlg,
+    setCommand( DOCKABLE_INDEX, TEXT( "Changed &Lines Panel" ), DockableDlg,
                 NULL, false );
     setCommand( 2, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
     setCommand( 3, TEXT( "Goto &Next Change" ), gotoNextChange, NextChgKey,
@@ -163,6 +180,9 @@ void commandMenuInit()
     setCommand( 4, TEXT( "Goto &Previous Change" ), gotoPrevChange, PreChgKey,
                 false );
     setCommand( 5, TEXT( "&Clear all in Current File" ), clearAllCF, NULL,
+                false );
+    setCommand( 6, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
+    setCommand( 7, TEXT( "&Settings" ), doSettings, NULL,
                 false );
 }
 
@@ -231,7 +251,7 @@ void UpdatePlugin( UINT Msg, WPARAM wParam, LPARAM lParam )
 
 void updateWidth()
 {
-    UpdatePlugin( SCI_SETMARGINWIDTHN, DEFAULT_MARGIN, g_Width );
+    UpdatePlugin( SCI_SETMARGINWIDTHN, g_Margin, g_Width );
 }
 
 void updateChangeColor()
@@ -257,23 +277,33 @@ void updateSaveStyle()
     UpdatePlugin( SCI_MARKERDEFINE, SAVE_MARKER, g_SaveMarkStyle );
 }
 
+void updatePanel()
+{
+    if ( _Panel.isVisible() )
+        clearList();
+}
+
 void InitPlugin()
 {
     HWND ScintillaArr[] = { nppData._scintillaMainHandle, nppData._scintillaSecondHandle };
+
+    int margins = ( int )::SendMessage( getCurScintilla(), SCI_GETMARGINS, 0, 0 );
+    if ( margins <= g_Margin )
+        UpdatePlugin( SCI_SETMARGINS, ( g_Margin + 1 ), 0 );
 
     for ( int i = 0; i < 2; i++ )
     {
         HWND hCurScintilla = ScintillaArr[i];
 
-        SendMessage( hCurScintilla, SCI_SETMARGINTYPEN, DEFAULT_MARGIN,
+        SendMessage( hCurScintilla, SCI_SETMARGINTYPEN, g_Margin,
                      SC_MARGIN_SYMBOL );
       
         // Mask
         int OriMask = ( int )::SendMessage( hCurScintilla, SCI_GETMARGINMASKN,
-                                            DEFAULT_MARGIN, 0 );
+                                            g_Margin, 0 );
         int tmpMask = 0;
         tmpMask = OriMask | CHANGE_MASK | SAVE_MASK;
-        SendMessage( hCurScintilla, SCI_SETMARGINMASKN, DEFAULT_MARGIN, tmpMask );
+        SendMessage( hCurScintilla, SCI_SETMARGINMASKN, g_Margin, tmpMask );
     }
 
     updateWidth();
@@ -286,6 +316,8 @@ void InitPlugin()
 void DestroyPlugin()
 {
     HWND ScintillaArr[] = { nppData._scintillaMainHandle, nppData._scintillaSecondHandle };
+    char currDoc[MAX_PATH];
+    SendMessage( nppData._nppHandle, NPPM_GETFULLCURRENTPATH, ( WPARAM ) MAX_PATH, ( LPARAM) currDoc );
 
     for ( int i = 0; i < 2; i++ )
     {
@@ -294,8 +326,8 @@ void DestroyPlugin()
         SendMessage( hCurScintilla, SCI_MARKERDELETEALL, CHANGE_MARKER, 0 );
         SendMessage( hCurScintilla, SCI_MARKERDELETEALL, SAVE_MARKER, 0 );
 
-        SendMessage( hCurScintilla, SCI_SETMARGINTYPEN, DEFAULT_MARGIN, 0 );
-        SendMessage( hCurScintilla, SCI_SETMARGINWIDTHN, DEFAULT_MARGIN, 0 );
+        SendMessage( hCurScintilla, SCI_SETMARGINTYPEN, g_Margin, 0 );
+        SendMessage( hCurScintilla, SCI_SETMARGINWIDTHN, g_Margin, 0 );
     }
 
     // Get open files
@@ -321,6 +353,8 @@ void DestroyPlugin()
     for ( int i = 0; i < filecount; i++ )
         delete []buffer[i];
     delete []buffer;
+
+    SendMessage( nppData._nppHandle, NPPM_DOOPEN, 0, ( LPARAM ) currDoc );
 }
 
 void clearAllCF()
@@ -333,23 +367,25 @@ void clearAllCF()
 
 void doEnable()
 {
-    UINT state = ::GetMenuState( ::GetMenu( nppData._nppHandle ),
-                                 funcItem[ENABLE_INDEX]._cmdID,
-                                 MF_BYCOMMAND );
+    // UINT state = ::GetMenuState( ::GetMenu( nppData._nppHandle ),
+                                 // funcItem[ENABLE_INDEX]._cmdID,
+                                 // MF_BYCOMMAND );
 
-    if ( state & MF_CHECKED )
+    if ( g_enabled )
     {
         g_enabled = 0;
         DestroyPlugin();
+        ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
+                       funcItem[ENABLE_INDEX]._cmdID, MF_UNCHECKED );
     }
     else
     {
         g_enabled = 1;
         InitPlugin();
+        ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
+                       funcItem[ENABLE_INDEX]._cmdID, MF_CHECKED );
     }
 
-    ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
-                   funcItem[ENABLE_INDEX]._cmdID, !( state & MF_CHECKED ) );
 }
 
 void gotoNextChange()
@@ -532,14 +568,19 @@ void DockableDlg()
                        ( LPARAM )&data );
     }
 
-    UINT state = ::GetMenuState( ::GetMenu( nppData._nppHandle ),
-                                 funcItem[DOCKABLE_INDEX]._cmdID, MF_BYCOMMAND );
+    // UINT state = ::GetMenuState( ::GetMenu( nppData._nppHandle ),
+                                 // funcItem[DOCKABLE_INDEX]._cmdID, MF_BYCOMMAND );
 
-    if ( state & MF_CHECKED )
+    if ( _Panel.isWindowVisible() )
+    {
         _Panel.display( false );
+        ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
+                       funcItem[DOCKABLE_INDEX]._cmdID, MF_UNCHECKED );
+    }
     else
+    {
         _Panel.display();
-
-    ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
-                   funcItem[DOCKABLE_INDEX]._cmdID, !( state & MF_CHECKED ) );
+        ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
+                       funcItem[DOCKABLE_INDEX]._cmdID, MF_CHECKED );
+    }
 }

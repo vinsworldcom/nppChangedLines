@@ -93,6 +93,11 @@ void StaticDialog::create(int dialogID, bool isRTL)
     ::SendMessage(_hParent, NPPM_MODELESSDIALOG, MODELESSDIALOGADD, reinterpret_cast<WPARAM>(_hSelf));
 }
 
+BOOL StaticDialog::isWindowVisible()
+{
+    return ::IsWindowVisible(_hSelf);
+}
+
 INT_PTR CALLBACK StaticDialog::dlgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     hDialog = hwnd;
@@ -106,7 +111,7 @@ INT_PTR CALLBACK StaticDialog::dlgProc(HWND hwnd, UINT message, WPARAM wParam, L
             ::GetWindowRect(hwnd, &(pStaticDlg->_rc));
             pStaticDlg->run_dlgProc(message, wParam, lParam);
 
-            ::SendMessage( GetDlgItem( hwnd, IDC_CHK1 ), BM_SETCHECK, ( LPARAM )( g_enabled ? 1 : 0 ), 0 );
+            ::SendMessage( GetDlgItem( hwnd, IDC_CHK_ENABLED ), BM_SETCHECK, ( LPARAM )( g_enabled ? 1 : 0 ), 0 );
 
             return TRUE;
         }

@@ -21,6 +21,11 @@
 #include "DockingDlgInterface.h"
 #include "resource.h"
 
+void clearList();
+void SetNppColors();
+void SetSysColors();
+void ChangeColors();
+
 class DemoDlg : public DockingDlgInterface
 {
     public :

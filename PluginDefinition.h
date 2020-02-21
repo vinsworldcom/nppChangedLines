@@ -38,7 +38,7 @@ const TCHAR NPP_PLUGIN_NAME[] = TEXT( "Changed &Lines" );
 //
 // Here define the number of your plugin commands
 //
-const int nbFunc = 6;
+const int nbFunc = 8;
 
 //
 // Initialization of your plugin data
@@ -76,10 +76,11 @@ bool setCommand( size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc,
 #define DefaultChangeStyle SC_MARK_FULLRECT
 #define DefaultSaveStyle   SC_MARK_FULLRECT
 #define DefaultGotoIncSave 0
+#define DefaultMargin      4
 #define DefaultWidth       4
 #define DefaultArrowWidth  14
 #define NUMDIGIT           64
-const int DEFAULT_MARGIN = 4;
+const int MAX_MARGINS    = 10;
 const int CHANGE_MARKER  = 10;
 const int SAVE_MARKER    = 11;
 const int CHANGE_MASK    = ( 1 << CHANGE_MARKER );
@@ -100,11 +101,13 @@ enum MarkType
 };
 
 HWND getCurScintilla();
+int findNextMark( HWND, int, int );
 void updateWidth();
 void updateChangeColor();
 void updateSaveColor();
 void updateChangeStyle();
 void updateSaveStyle();
+void updatePanel();
 void InitPlugin();
 void DestroyPlugin();
 void clearAllCF();
