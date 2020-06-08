@@ -304,6 +304,7 @@ void InitPlugin()
         int tmpMask = 0;
         tmpMask = OriMask | CHANGE_MASK | SAVE_MASK;
         SendMessage( hCurScintilla, SCI_SETMARGINMASKN, g_Margin, tmpMask );
+        SendMessage( hCurScintilla, SCI_SETMARGINSENSITIVEN, g_Margin, true );
     }
 
     updateWidth();

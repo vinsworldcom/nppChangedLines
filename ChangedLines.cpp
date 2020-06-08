@@ -90,6 +90,13 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
         }
         break;
 
+        case SCN_MARGINCLICK:
+        {
+            if ( g_enabled )
+                gotoNextChange();
+        }
+        break;
+
         case SCN_MODIFIED:
         {
             if ( !g_enabled )
