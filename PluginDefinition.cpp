@@ -280,7 +280,7 @@ void updateSaveStyle()
 void updatePanel()
 {
     if ( _Panel.isVisible() )
-        clearList();
+        updateListTimer();
 }
 
 void InitPlugin()
