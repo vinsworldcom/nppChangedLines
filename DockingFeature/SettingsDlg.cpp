@@ -17,6 +17,8 @@ extern int  g_ChangeMarkStyle;
 extern int  g_SaveMarkStyle;
 extern bool g_useNppColors;
 
+HBRUSH ghButtonColor;
+
 int getMarkerType( int marker )
 {
     switch ( marker )
@@ -76,7 +78,23 @@ INT_PTR CALLBACK SettingsDlg(HWND hWndDlg, UINT msg, WPARAM wParam, LPARAM lPara
         case WM_DESTROY:
         {
             EndDialog(hWndDlg, 0);
+            DeleteObject( ghButtonColor );
             return TRUE;
+        }
+
+        case WM_CTLCOLORBTN:
+        {
+            if ( (HWND)lParam == GetDlgItem( hWndDlg, IDC_BTN_COLORCHANGE ) )
+            {
+                ghButtonColor = CreateSolidBrush( g_ChangeColor );
+                return (INT_PTR)ghButtonColor;
+            }
+            else if ( (HWND)lParam == GetDlgItem( hWndDlg, IDC_BTN_COLORSAVE ) )
+            {
+                ghButtonColor = CreateSolidBrush( g_SaveColor );
+                return (INT_PTR)ghButtonColor;
+            }
+            return FALSE;
         }
 
         case WM_COMMAND:
@@ -130,6 +148,7 @@ INT_PTR CALLBACK SettingsDlg(HWND hWndDlg, UINT msg, WPARAM wParam, LPARAM lPara
                     {
                         g_ChangeColor = cc.rgbResult;
                         updateChangeColor();
+                        InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORCHANGE ), NULL, TRUE );
                     }
 
                     return TRUE;
@@ -138,6 +157,7 @@ INT_PTR CALLBACK SettingsDlg(HWND hWndDlg, UINT msg, WPARAM wParam, LPARAM lPara
                 {
                     g_ChangeColor = DefaultChangeColor;
                     updateChangeColor();
+                    InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORCHANGE ), NULL, TRUE );
                     return TRUE;
                 }
                 case MAKELONG( IDC_CBO_MARKCHANGE, CBN_SELCHANGE ):
@@ -174,6 +194,7 @@ INT_PTR CALLBACK SettingsDlg(HWND hWndDlg, UINT msg, WPARAM wParam, LPARAM lPara
                     {
                         g_SaveColor = cc.rgbResult;
                         updateSaveColor();
+                        InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORSAVE ), NULL, TRUE );
                     }
 
                     return TRUE;
@@ -182,6 +203,7 @@ INT_PTR CALLBACK SettingsDlg(HWND hWndDlg, UINT msg, WPARAM wParam, LPARAM lPara
                 {
                     g_SaveColor = DefaultSaveColor;
                     updateSaveColor();
+                    InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORSAVE ), NULL, TRUE );
                     return TRUE;
                 }
                 case MAKELONG( IDC_CBO_MARKSAVE, CBN_SELCHANGE ):
