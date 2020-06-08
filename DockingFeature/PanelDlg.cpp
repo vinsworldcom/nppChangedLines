@@ -173,7 +173,7 @@ void updateList()
 void refreshDialog()
 {
     SendMessage( GetDlgItem( hDialog, IDC_CHK_ENABLED ), BM_SETCHECK, ( WPARAM )( g_enabled ? 1 : 0 ), 0 );
-    SendMessage( GetDlgItem( hDialog, IDC_CHK_INCSAVES ), BM_SETCHECK, ( WPARAM )( g_GotoIncSave ? 1 : 0 ), 0 );
+    SendMessage( GetDlgItem( hDialog, IDC_CHK_NPPCOLOR ), BM_SETCHECK, ( WPARAM )( g_useNppColors ? 1 : 0 ), 0 );
 }
 
 void SetNppColors()
@@ -229,13 +229,13 @@ void initDialog()
 
     imageToolbar( GetModuleHandle( TEXT("ChangedLines.dll" ) ), hWndToolbar1, IDB_TOOLBAR1, numButtons1 );
 
-    refreshDialog();
-
     if ( g_useNppColors )
         SetNppColors();
     else
         SetSysColors();
     ChangeColors();
+
+    refreshDialog();
 
     HWND hList = GetDlgItem( hDialog, IDC_LSV1 );
 
@@ -310,15 +310,22 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                     gotoPrevChange();
                     return TRUE;
                 }
-                case IDC_CHK_INCSAVES :
+                case IDC_CHK_NPPCOLOR :
                 {
-                    int check = ( int )::SendMessage( GetDlgItem( hDialog, IDC_CHK_INCSAVES ), BM_GETCHECK, 0, 0 );
+                    int check = ( int )::SendMessage( GetDlgItem( hDialog, IDC_CHK_NPPCOLOR ), BM_GETCHECK, 0, 0 );
 
-                    if( check & BST_CHECKED )
-                        g_GotoIncSave = true;
+                    if ( check & BST_CHECKED )
+                    {
+                      SetNppColors();
+                      g_useNppColors = true;
+                    }
                     else
-                        g_GotoIncSave = false;
-
+                    {
+                      SetSysColors();
+                      g_useNppColors = false;
+                    }
+                    ChangeColors();
+                    refreshDialog();
                     return TRUE;
                 }
                 case IDC_BTN_CLEARALL :

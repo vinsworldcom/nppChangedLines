@@ -3,7 +3,6 @@
 
 #include "..\PluginDefinition.h"
 #include "..\PluginInterface.h"
-#include "PanelDlg.h"
 #include "SettingsDlg.h"
 #include "resource.h"
 
@@ -15,7 +14,7 @@ extern long g_ChangeColor;
 extern long g_SaveColor;
 extern int  g_ChangeMarkStyle;
 extern int  g_SaveMarkStyle;
-extern bool g_useNppColors;
+extern bool g_GotoIncSave;
 
 HBRUSH ghButtonColor;
 
@@ -42,12 +41,13 @@ void refreshSettings( HWND hWndDlg )
 
     SendMessage( GetDlgItem( hWndDlg, IDC_CBO_MARKCHANGE ), CB_SETCURSEL, getMarkerType( g_ChangeMarkStyle ), 0 );
     SendMessage( GetDlgItem( hWndDlg, IDC_CBO_MARKSAVE ), CB_SETCURSEL, getMarkerType( g_SaveMarkStyle ), 0 );
+
+    SendMessage( GetDlgItem( hWndDlg, IDC_CHK_INCSAVES ), BM_SETCHECK,
+                   ( WPARAM )( g_GotoIncSave ? 1 : 0 ), 0 );
 }
 
 INT_PTR CALLBACK SettingsDlg(HWND hWndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    ::SendMessage( GetDlgItem( hWndDlg, IDC_CHK_NPPCOLOR ), BM_SETCHECK,
-                   ( LPARAM )( g_useNppColors ? 1 : 0 ), 0 );
 
     switch(msg)
     {
@@ -105,19 +105,17 @@ INT_PTR CALLBACK SettingsDlg(HWND hWndDlg, UINT msg, WPARAM wParam, LPARAM lPara
                     PostMessage(hWndDlg, WM_CLOSE, 0, 0);
                     return TRUE;
 
-                case IDC_CHK_NPPCOLOR :
+                case IDC_CHK_INCSAVES:
                 {
-                    if ( SendMessage( GetDlgItem( hWndDlg, IDC_CHK_NPPCOLOR ), BM_GETCHECK, 0, 0 ) == BST_CHECKED )
-                    {
-                      SetSysColors();
-                      g_useNppColors = false;
-                    }
+                    int check = ( int )::SendMessage( GetDlgItem( hWndDlg, IDC_CHK_INCSAVES ), BM_GETCHECK, 0, 0 );
+
+                    if ( check & BST_CHECKED )
+                        g_GotoIncSave = true;
                     else
-                    {
-                      SetNppColors();
-                      g_useNppColors = true;
-                    }
-                    ChangeColors();
+                        g_GotoIncSave = false;
+
+                    updatePanel();
+
                     return TRUE;
                 }
 
