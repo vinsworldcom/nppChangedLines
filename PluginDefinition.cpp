@@ -583,5 +583,6 @@ void DockableDlg()
         _Panel.display();
         ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
                        funcItem[DOCKABLE_INDEX]._cmdID, MF_CHECKED );
+        updateListTimer();
     }
 }
