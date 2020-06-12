@@ -41,6 +41,8 @@ COLORREF colorFg;
 // #define COL_CHK 0
 #define COL_LINE 0
 #define COL_TEXT 1
+#define TIMER_ID            1
+#define TIMER_REFRESH_DELAY 500
 
 const int WS_TOOLBARSTYLE = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TBSTYLE_TOOLTIPS |TBSTYLE_FLAT | CCS_TOP | BTNS_AUTOSIZE | CCS_NOPARENTALIGN | CCS_NORESIZE | CCS_NODIVIDER;
                          /* WS_CHILD | WS_VISIBLE |                                                                                                                    CCS_NORESIZE |                CCS_ADJUSTABLE */
@@ -126,6 +128,12 @@ std::wstring stringToWstring(const std::string& t_str)
     return converter.from_bytes(t_str);
 }
 
+void updateListTimer()
+{
+    KillTimer( hDialog, TIMER_ID );
+    SetTimer( hDialog, TIMER_ID, TIMER_REFRESH_DELAY, NULL );
+}
+
 void updateList()
 {
     if ( ! g_NppReady )
@@ -165,7 +173,7 @@ void updateList()
 void refreshDialog()
 {
     SendMessage( GetDlgItem( hDialog, IDC_CHK_ENABLED ), BM_SETCHECK, ( WPARAM )( g_enabled ? 1 : 0 ), 0 );
-    SendMessage( GetDlgItem( hDialog, IDC_CHK_INCSAVES ), BM_SETCHECK, ( WPARAM )( g_GotoIncSave ? 1 : 0 ), 0 );
+    SendMessage( GetDlgItem( hDialog, IDC_CHK_NPPCOLOR ), BM_SETCHECK, ( WPARAM )( g_useNppColors ? 1 : 0 ), 0 );
 }
 
 void SetNppColors()
@@ -221,13 +229,13 @@ void initDialog()
 
     imageToolbar( GetModuleHandle( TEXT("ChangedLines.dll" ) ), hWndToolbar1, IDB_TOOLBAR1, numButtons1 );
 
-    refreshDialog();
-
     if ( g_useNppColors )
         SetNppColors();
     else
         SetSysColors();
     ChangeColors();
+
+    refreshDialog();
 
     HWND hList = GetDlgItem( hDialog, IDC_LSV1 );
 
@@ -276,6 +284,13 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
 {
     switch ( message )
     {
+        case WM_TIMER:
+        {
+            KillTimer( hDialog, TIMER_ID );
+            updateList();
+            return FALSE;
+        }
+
         case WM_COMMAND :
         {
             switch ( wParam )
@@ -295,15 +310,22 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                     gotoPrevChange();
                     return TRUE;
                 }
-                case IDC_CHK_INCSAVES :
+                case IDC_CHK_NPPCOLOR :
                 {
-                    int check = ( int )::SendMessage( GetDlgItem( hDialog, IDC_CHK_INCSAVES ), BM_GETCHECK, 0, 0 );
+                    int check = ( int )::SendMessage( GetDlgItem( hDialog, IDC_CHK_NPPCOLOR ), BM_GETCHECK, 0, 0 );
 
-                    if( check & BST_CHECKED )
-                        g_GotoIncSave = true;
+                    if ( check & BST_CHECKED )
+                    {
+                      SetNppColors();
+                      g_useNppColors = true;
+                    }
                     else
-                        g_GotoIncSave = false;
-
+                    {
+                      SetSysColors();
+                      g_useNppColors = false;
+                    }
+                    ChangeColors();
+                    refreshDialog();
                     return TRUE;
                 }
                 case IDC_BTN_CLEARALL :

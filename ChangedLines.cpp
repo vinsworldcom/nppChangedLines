@@ -19,12 +19,14 @@
 ///----------------------------------------------------------------------------
 
 #include "PluginDefinition.h"
+#include "Scintilla.h"
 
 extern FuncItem funcItem[nbFunc];
 extern HINSTANCE g_hInst;
 extern NppData   nppData;
 extern bool      g_NppReady;
 extern bool      g_enabled;
+extern int       g_Margin;
 
 static Sci_Position preModifyPos = -1;
 static Sci_Position preModifyLineAdd = -1;
@@ -87,6 +89,19 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
         {
             if ( g_NppReady )
                 updatePanel();
+        }
+        break;
+
+        case SCN_MARGINCLICK:
+        {
+            if ( g_enabled )
+            {
+                if ( notifyCode->margin == g_Margin )
+                    if ( notifyCode->modifiers & SCMOD_SHIFT )
+                        gotoPrevChange();
+                    else
+                        gotoNextChange();
+            }
         }
         break;
 
@@ -178,6 +193,8 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
                     }
                 }
             }
+
+            updatePanel();
         }
         break;
 

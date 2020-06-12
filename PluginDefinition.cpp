@@ -280,7 +280,7 @@ void updateSaveStyle()
 void updatePanel()
 {
     if ( _Panel.isVisible() )
-        clearList();
+        updateListTimer();
 }
 
 void InitPlugin()
@@ -304,6 +304,7 @@ void InitPlugin()
         int tmpMask = 0;
         tmpMask = OriMask | CHANGE_MASK | SAVE_MASK;
         SendMessage( hCurScintilla, SCI_SETMARGINMASKN, g_Margin, tmpMask );
+        SendMessage( hCurScintilla, SCI_SETMARGINSENSITIVEN, g_Margin, true );
     }
 
     updateWidth();
@@ -582,5 +583,6 @@ void DockableDlg()
         _Panel.display();
         ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
                        funcItem[DOCKABLE_INDEX]._cmdID, MF_CHECKED );
+        updateListTimer();
     }
 }

@@ -51,12 +51,14 @@
 
 #define IDC_GRP1               (IDD_SETTINGS + 4)
 #define IDC_BTN_COLORCHANGE    (IDD_SETTINGS + 5)
-#define IDC_BTN_COLORCHANGEDEF (IDD_SETTINGS + 6)
-#define IDC_CBO_MARKCHANGE     (IDD_SETTINGS + 7)
-                                                
-#define IDC_GRP2               (IDD_SETTINGS + 8)
-#define IDC_BTN_COLORSAVE      (IDD_SETTINGS + 9)
-#define IDC_BTN_COLORSAVEDEF   (IDD_SETTINGS + 10)
-#define IDC_CBO_MARKSAVE       (IDD_SETTINGS + 11)
+#define IDC_GRP_BTNCC          (IDD_SETTINGS + 6)
+#define IDC_BTN_COLORCHANGEDEF (IDD_SETTINGS + 7)
+#define IDC_CBO_MARKCHANGE     (IDD_SETTINGS + 8)
+
+#define IDC_GRP2               (IDD_SETTINGS + 9)
+#define IDC_BTN_COLORSAVE      (IDD_SETTINGS + 10)
+#define IDC_GRP_BTNCS          (IDD_SETTINGS + 11)
+#define IDC_BTN_COLORSAVEDEF   (IDD_SETTINGS + 12)
+#define IDC_CBO_MARKSAVE       (IDD_SETTINGS + 13)
 
 #endif // RESOURCE_H

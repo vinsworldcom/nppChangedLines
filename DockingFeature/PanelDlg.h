@@ -21,7 +21,7 @@
 #include "DockingDlgInterface.h"
 #include "resource.h"
 
-void clearList();
+void updateListTimer();
 void SetNppColors();
 void SetSysColors();
 void ChangeColors();
