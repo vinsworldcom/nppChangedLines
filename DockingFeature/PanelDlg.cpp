@@ -263,10 +263,12 @@ void initDialog()
     clearList();
 }
 
-void gotoLine()
+void gotoLine(int idx)
 {
     TCHAR lineno[MAX_PATH] = {0};
-    int idx = ListView_GetNextItem( GetDlgItem( hDialog, IDC_LSV1 ), -1, LVIS_FOCUSED );
+
+    if ( idx == -1 )
+        idx = ListView_GetNextItem( GetDlgItem( hDialog, IDC_LSV1 ), -1, LVIS_FOCUSED );
 
     memset( &LvItem, 0, sizeof(LvItem) );
     LvItem.mask       = LVIF_TEXT;
@@ -277,6 +279,7 @@ void gotoLine()
 
     SendMessage( GetDlgItem( hDialog, IDC_LSV1 ), LVM_GETITEMTEXT, idx, (LPARAM)&LvItem );
     SendMessage( getCurScintilla(), SCI_GOTOLINE, std::stoi( lineno ) - 1 , 0 );
+    PostMessage(nppData._nppHandle, WM_COMMAND, SCEN_SETFOCUS << 16, reinterpret_cast<LPARAM>(getCurScintilla()));
 }
 
 INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
@@ -349,7 +352,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                 { 
                     HWND hWndCtrl = GetFocus();
                     if ( hWndCtrl == GetDlgItem( hDialog, IDC_LSV1 ) )
-                        gotoLine();
+                        gotoLine(-1);
                     return TRUE;
                 }
             }
@@ -380,17 +383,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                         if ( ht.iItem == -1 )
                             break;
 
-                        TCHAR lineno[MAX_PATH] = {0};
-
-                        memset( &LvItem, 0, sizeof(LvItem) );
-                        LvItem.mask       = LVIF_TEXT;
-                        LvItem.iSubItem   = COL_LINE;
-                        LvItem.pszText    = lineno;
-                        LvItem.cchTextMax = MAX_PATH;
-                        LvItem.iItem      = ht.iItem;
-
-                        SendMessage( GetDlgItem( hDialog, IDC_LSV1 ), LVM_GETITEMTEXT, ht.iItem, (LPARAM)&LvItem );
-                        SendMessage( getCurScintilla(), SCI_GOTOLINE, std::stoi( lineno ) - 1 , 0 );
+                        gotoLine(ht.iItem);
                     }
                     return TRUE;
                 }
@@ -415,7 +408,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                       || ( pnkd->wVKey == VK_SPACE ) 
                       ) )
                     {
-                        gotoLine();
+                        gotoLine(-1);
                     }
                     return FALSE;
                 }
