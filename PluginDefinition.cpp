@@ -16,6 +16,7 @@
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 #include "PluginDefinition.h"
+#include "CircularStackLinkList.h"
 #include "DockingFeature/PanelDlg.h"
 #include "DockingFeature/SettingsDlg.h"
 #include "menuCmdID.h"
@@ -63,6 +64,12 @@ bool g_useNppColors    = false;
 
 #define ENABLE_INDEX 0
 #define DOCKABLE_INDEX 1
+
+#define TIMER_POS       2
+#define TIMER_POS_DELAY 3000
+
+extern circular_buffer<int> prevPos;
+extern circular_buffer<int> nextPos;
 
 //
 // Initialize your plugin data here
@@ -175,14 +182,19 @@ void commandMenuInit()
     setCommand( DOCKABLE_INDEX, TEXT( "Changed &Lines Panel" ), DockableDlg,
                 NULL, false );
     setCommand( 2, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
-    setCommand( 3, TEXT( "Goto &Next Change" ), gotoNextChange, NextChgKey,
+    setCommand( 3, TEXT( "Goto &Next Change" ), gotoNextChange, NULL,
                 false );
-    setCommand( 4, TEXT( "Goto &Previous Change" ), gotoPrevChange, PreChgKey,
+    setCommand( 4, TEXT( "Goto &Previous Change" ), gotoPrevChange, NULL,
                 false );
     setCommand( 5, TEXT( "&Clear all in Current File" ), clearAllCF, NULL,
                 false );
     setCommand( 6, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
-    setCommand( 7, TEXT( "&Settings" ), doSettings, NULL,
+    setCommand( 7, TEXT( "Goto Next Position" ), gotoNextPos, NextChgKey,
+                false );
+    setCommand( 8, TEXT( "Goto Previous Position" ), gotoPrevPos, PreChgKey,
+                false );
+    setCommand( 9, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
+    setCommand( 10, TEXT( "&Settings" ), doSettings, NULL,
                 false );
 }
 
@@ -281,6 +293,23 @@ void updatePanel()
 {
     if ( _Panel.isVisible() )
         updateListTimer();
+}
+
+void posTimerproc( HWND /*Arg1*/, UINT /*Arg2*/, UINT_PTR /*Arg3*/, DWORD /*Arg4*/)
+{
+    KillTimer( nppData._nppHandle, TIMER_POS );
+    prevPos.put( getCurrentPos() );
+}
+
+void updatePosTimer()
+{
+    KillTimer( nppData._nppHandle, TIMER_POS );
+    SetTimer( nppData._nppHandle, TIMER_POS, TIMER_POS_DELAY, ( TIMERPROC )posTimerproc );
+}
+
+void updatePosition()
+{
+    updatePosTimer();
 }
 
 void InitPlugin()

@@ -41,8 +41,8 @@ COLORREF colorFg;
 // #define COL_CHK 0
 #define COL_LINE 0
 #define COL_TEXT 1
-#define TIMER_ID            1
-#define TIMER_REFRESH_DELAY 500
+#define TIMER_CHANGE       1
+#define TIMER_CHANGE_DELAY 500
 
 const int WS_TOOLBARSTYLE = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TBSTYLE_TOOLTIPS |TBSTYLE_FLAT | CCS_TOP | BTNS_AUTOSIZE | CCS_NOPARENTALIGN | CCS_NORESIZE | CCS_NODIVIDER;
                          /* WS_CHILD | WS_VISIBLE |                                                                                                                    CCS_NORESIZE |                CCS_ADJUSTABLE */
@@ -130,8 +130,8 @@ std::wstring stringToWstring(const std::string& t_str)
 
 void updateListTimer()
 {
-    KillTimer( hDialog, TIMER_ID );
-    SetTimer( hDialog, TIMER_ID, TIMER_REFRESH_DELAY, NULL );
+    KillTimer( hDialog, TIMER_CHANGE );
+    SetTimer( hDialog, TIMER_CHANGE, TIMER_CHANGE_DELAY, NULL );
 }
 
 void updateList()
@@ -289,7 +289,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
     {
         case WM_TIMER:
         {
-            KillTimer( hDialog, TIMER_ID );
+            KillTimer( hDialog, TIMER_CHANGE );
             updateList();
             return FALSE;
         }
