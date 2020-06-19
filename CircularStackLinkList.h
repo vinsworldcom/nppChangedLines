@@ -2,17 +2,16 @@
 #define CIRCULARSTACKLINKLIST_H
 
 #include "Scintilla.h"
-
 #include "PluginDefinition.h"
 
 #include <cstdio>
-
 #include <memory>
 #include <mutex>
 
 #define STACK_SIZE 10
 
-typedef struct {
+typedef struct
+{
     TCHAR docName[MAX_PATH];
     int lineNo;
 } tDocPos;
@@ -38,7 +37,6 @@ class circular_buffer
                 tail_ = ( tail_ + 1 ) % max_size_;
 
             head_ = ( head_ + 1 ) % max_size_;
-
             full_ = head_ == tail_;
         }
 

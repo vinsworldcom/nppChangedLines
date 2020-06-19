@@ -21,18 +21,19 @@ tDocPos getCurrentPos()
     SendMessage( nppData._nppHandle, NPPM_GETFULLCURRENTPATH,
                  ( WPARAM ) MAX_PATH, ( LPARAM ) docPos.docName );
 
-    Sci_Position currentPos = ( Sci_Position )::SendMessage( getCurScintilla(),
+    HWND currScintilla = getCurScintilla();
+    Sci_Position currentPos = ( Sci_Position )::SendMessage( currScintilla,
                               SCI_GETCURRENTPOS, 0, 0 );
-    docPos.lineNo = ( int )::SendMessage( getCurScintilla(),
-                                            SCI_LINEFROMPOSITION, currentPos, 0 );
+    docPos.lineNo = ( int )::SendMessage( currScintilla, SCI_LINEFROMPOSITION,
+                                          currentPos, 0 );
 
     return docPos;
 }
 
 void gotoNewPos( tDocPos docPos )
 {
-    
-    ::SendMessage( nppData._nppHandle, NPPM_DOOPEN, 0, ( LPARAM ) docPos.docName );
+    ::SendMessage( nppData._nppHandle, NPPM_DOOPEN, 0,
+                   ( LPARAM ) docPos.docName );
     ::SendMessage( getCurScintilla(), SCI_GOTOLINE, docPos.lineNo, 0 );
 }
 
