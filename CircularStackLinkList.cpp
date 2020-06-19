@@ -10,21 +10,30 @@
 #include "Scintilla.h"
 #include "CircularStackLinkList.h"
 
-circular_buffer<int> prevPos( STACK_SIZE );
-circular_buffer<int> nextPos( STACK_SIZE );
+extern NppData nppData;
 
-int getCurrentPos()
+circular_buffer<tDocPos> prevPos( STACK_SIZE );
+circular_buffer<tDocPos> nextPos( STACK_SIZE );
+
+tDocPos getCurrentPos()
 {
+    tDocPos docPos;
+    SendMessage( nppData._nppHandle, NPPM_GETFULLCURRENTPATH,
+                 ( WPARAM ) MAX_PATH, ( LPARAM ) docPos.docName );
+
     Sci_Position currentPos = ( Sci_Position )::SendMessage( getCurScintilla(),
                               SCI_GETCURRENTPOS, 0, 0 );
-    int currentLine = ( int )::SendMessage( getCurScintilla(),
-                              SCI_LINEFROMPOSITION, currentPos, 0 );
-    return currentLine;
+    docPos.lineNo = ( int )::SendMessage( getCurScintilla(),
+                                            SCI_LINEFROMPOSITION, currentPos, 0 );
+
+    return docPos;
 }
 
-void gotoNewPos( int gotoPos )
+void gotoNewPos( tDocPos docPos )
 {
-    ::SendMessage( getCurScintilla(), SCI_GOTOLINE, gotoPos, 0 );
+    
+    ::SendMessage( nppData._nppHandle, NPPM_DOOPEN, 0, ( LPARAM ) docPos.docName );
+    ::SendMessage( getCurScintilla(), SCI_GOTOLINE, docPos.lineNo, 0 );
 }
 
 void gotoPrevPos()

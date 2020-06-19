@@ -12,6 +12,11 @@
 
 #define STACK_SIZE 10
 
+typedef struct {
+    TCHAR docName[MAX_PATH];
+    int lineNo;
+} tDocPos;
+
 template <class T>
 class circular_buffer
 {
@@ -100,8 +105,8 @@ class circular_buffer
         bool full_ = 0;
 };
 
-int getCurrentPos();
-void gotoNewPos( int gotoPos );
+tDocPos getCurrentPos();
+void gotoNewPos( tDocPos gotoPos );
 void gotoPrevPos();
 void gotoNextPos();
 

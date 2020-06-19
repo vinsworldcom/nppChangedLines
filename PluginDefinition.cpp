@@ -68,8 +68,8 @@ bool g_useNppColors    = false;
 #define TIMER_POS       2
 #define TIMER_POS_DELAY 3000
 
-extern circular_buffer<int> prevPos;
-extern circular_buffer<int> nextPos;
+extern circular_buffer<tDocPos> prevPos;
+extern circular_buffer<tDocPos> nextPos;
 
 //
 // Initialize your plugin data here
