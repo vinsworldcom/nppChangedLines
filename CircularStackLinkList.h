@@ -8,8 +8,6 @@
 #include <memory>
 #include <mutex>
 
-#define STACK_SIZE 10
-
 typedef struct
 {
     TCHAR docName[MAX_PATH];
@@ -38,6 +36,20 @@ class circular_buffer
 
             head_ = ( head_ + 1 ) % max_size_;
             full_ = head_ == tail_;
+        }
+
+        void timerPut( T item )
+        {
+            std::lock_guard<std::mutex> lock( mutex_ );
+
+            buf_[head_] = item;
+
+            if ( full_ )
+                tail_ = ( tail_ + 1 ) % max_size_;
+
+            head_ = ( head_ + 1 ) % max_size_;
+            full_ = head_ == tail_;
+            timerPut_ = true;
         }
 
         T get()
@@ -74,6 +86,16 @@ class circular_buffer
             return full_;
         }
 
+        bool getTimerPut() const
+        {
+            return timerPut_;
+        }
+
+        void clearTimerPut()
+        {
+            timerPut_ = false;
+        }
+
         size_t capacity() const
         {
             return max_size_;
@@ -101,6 +123,7 @@ class circular_buffer
         size_t tail_ = 0;
         const size_t max_size_;
         bool full_ = 0;
+        bool timerPut_ = 0;
 };
 
 tDocPos getCurrentPos();

@@ -10,7 +10,15 @@
 #include "Scintilla.h"
 #include "CircularStackLinkList.h"
 
+#ifdef DEBUG
+#include <iostream>
+#include <fstream>
+extern std::wfstream debugFile;
+#endif
+
 extern NppData nppData;
+
+#define STACK_SIZE 20
 
 circular_buffer<tDocPos> prevPos( STACK_SIZE );
 circular_buffer<tDocPos> nextPos( STACK_SIZE );
@@ -41,8 +49,31 @@ void gotoPrevPos()
 {
     if ( ! prevPos.empty() )
     {
-        nextPos.put( getCurrentPos() );
-        gotoNewPos( prevPos.get() );
+        tDocPos x;
+
+        if ( prevPos.getTimerPut() )
+        {
+#ifdef DEBUG
+            debugFile << "clearing TIMERPUT" << std::endl;
+#endif
+            prevPos.clearTimerPut();
+            x = prevPos.get();
+
+            if ( prevPos.empty() )
+                return;
+        }
+        else
+            x = getCurrentPos();
+
+#ifdef DEBUG
+        debugFile << "NEXTPOS.put:" << x.docName << ":" << x.lineNo << std::endl;
+#endif
+        nextPos.put( x );
+        x = prevPos.get();
+#ifdef DEBUG
+        debugFile << "    (here) :" << x.docName << ":" << x.lineNo << std::endl;
+#endif
+        gotoNewPos( x );
     }
 }
 
@@ -50,7 +81,21 @@ void gotoNextPos()
 {
     if ( ! nextPos.empty() )
     {
-        prevPos.put( getCurrentPos() );
-        gotoNewPos( nextPos.get() );
+        tDocPos x;
+
+        if ( ! prevPos.getTimerPut() )
+        {
+            x = getCurrentPos();
+#ifdef DEBUG
+            debugFile << "prevPos.put:" << x.docName << ":" << x.lineNo << std::endl;
+#endif
+            prevPos.put( x );
+        }
+
+        x = nextPos.get();
+#ifdef DEBUG
+        debugFile << "    (here) :" << x.docName << ":" << x.lineNo << std::endl;
+#endif
+        gotoNewPos( x );
     }
 }

@@ -26,6 +26,13 @@
 #include <vector>
 #include <shlwapi.h>
 
+#ifdef DEBUG
+#include <iostream>
+#include <fstream>
+std::wfstream debugFile;
+#define DEBUG_FILE "C:\\Users\\mvincent\\tmp\\ChangedLines.log"
+#endif
+
 const TCHAR configFileName[]     = TEXT( "ChangedLines.ini" );
 const TCHAR sectionName[]        = TEXT( "Settings" );
 const TCHAR iniKeyEnabled[]      = TEXT( "Enabled" );
@@ -66,7 +73,7 @@ bool g_useNppColors    = false;
 #define DOCKABLE_INDEX 1
 
 #define TIMER_POS       2
-#define TIMER_POS_DELAY 3000
+#define TIMER_POS_DELAY 2000
 
 extern circular_buffer<tDocPos> prevPos;
 extern circular_buffer<tDocPos> nextPos;
@@ -78,6 +85,10 @@ void pluginInit( HANDLE hModule )
 {
     // Initialize dockable dialog
     _Panel.init( ( HINSTANCE )hModule, NULL );
+
+#ifdef DEBUG    
+    debugFile.open (DEBUG_FILE, std::ios::app);
+#endif
 }
 
 //
@@ -298,7 +309,11 @@ void updatePanel()
 void posTimerproc( HWND /*Arg1*/, UINT /*Arg2*/, UINT_PTR /*Arg3*/, DWORD /*Arg4*/)
 {
     KillTimer( nppData._nppHandle, TIMER_POS );
-    prevPos.put( getCurrentPos() );
+    tDocPos x = getCurrentPos();
+#ifdef DEBUG
+    debugFile << "TIMER - put:" << x.docName << ":" << x.lineNo << std::endl;
+#endif
+    prevPos.timerPut( x );
 }
 
 void updatePosTimer()
