@@ -36,6 +36,7 @@ class circular_buffer
 
             head_ = ( head_ + 1 ) % max_size_;
             full_ = head_ == tail_;
+            timerPut_ = false;
         }
 
         void timerPut( T item )
