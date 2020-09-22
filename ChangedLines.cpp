@@ -194,6 +194,7 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
                 }
             }
 
+            updatePosition();
             updatePanel();
         }
         break;

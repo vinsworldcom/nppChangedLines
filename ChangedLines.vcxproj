@@ -162,6 +162,7 @@
     <ClCompile Include="DockingFeature\StaticDialog.cpp" />
     <ClCompile Include="ChangedLines.cpp" />
     <ClCompile Include="PluginDefinition.cpp" />
+    <ClCompile Include="CircularStackLinkList.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DockingFeature\Docking.h" />
@@ -176,7 +177,8 @@
     <ClInclude Include="Notepad_plus_msgs.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="PluginDefinition.h" />
-    <ClInclude Include="PluginInterface.h" />
+    <ClInclude Include="PluginDefinition.h" />
+    <ClInclude Include="CircularStackLinkList.h" />
     <ClInclude Include="Scintilla.h" />
     <ClInclude Include="Sci_Position_.h" />
   </ItemGroup>
