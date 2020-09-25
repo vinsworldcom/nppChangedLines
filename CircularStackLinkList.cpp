@@ -10,10 +10,9 @@
 #include "Scintilla.h"
 #include "CircularStackLinkList.h"
 
-#ifdef DEBUG
-#include <iostream>
-#include <fstream>
-extern std::wfstream debugFile;
+#ifdef _DEBUG
+#include <sstream>
+extern std::wstringstream debugString;
 #endif
 
 extern NppData nppData;
@@ -53,8 +52,8 @@ void gotoPrevPos()
 
         if ( prevPos.getTimerPut() )
         {
-#ifdef DEBUG
-            debugFile << "clearing TIMERPUT" << std::endl;
+#ifdef _DEBUG
+            OutputDebugString( TEXT("clearing TIMERPUT") );
 #endif
             prevPos.clearTimerPut();
             x = prevPos.get();
@@ -65,13 +64,17 @@ void gotoPrevPos()
         else
             x = getCurrentPos();
 
-#ifdef DEBUG
-        debugFile << "NEXTPOS.put:" << x.docName << ":" << x.lineNo << std::endl;
+#ifdef _DEBUG
+        debugString << "NEXTPOS.put:" << x.docName << ":" << x.lineNo << std::endl;
+        OutputDebugString( debugString.str().c_str() );
+        debugString.str(""); debugString.clear();
 #endif
         nextPos.put( x );
         x = prevPos.get();
-#ifdef DEBUG
-        debugFile << "    (here) :" << x.docName << ":" << x.lineNo << std::endl;
+#ifdef _DEBUG
+        debugString << "    (here) :" << x.docName << ":" << x.lineNo << std::endl;
+        OutputDebugString( debugString.str().c_str() );
+        debugString.str(""); debugString.clear();
 #endif
         gotoNewPos( x );
     }
@@ -86,15 +89,19 @@ void gotoNextPos()
         if ( ! prevPos.getTimerPut() )
         {
             x = getCurrentPos();
-#ifdef DEBUG
-            debugFile << "prevPos.put:" << x.docName << ":" << x.lineNo << std::endl;
+#ifdef _DEBUG
+            debugString << "prevPos.put:" << x.docName << ":" << x.lineNo << std::endl;
+            OutputDebugString( debugString.str().c_str() );
+            debugString.str(""); debugString.clear();
 #endif
             prevPos.put( x );
         }
 
         x = nextPos.get();
-#ifdef DEBUG
-        debugFile << "    (here) :" << x.docName << ":" << x.lineNo << std::endl;
+#ifdef _DEBUG
+        debugString << "    (here) :" << x.docName << ":" << x.lineNo << std::endl;
+        OutputDebugString( debugString.str().c_str() );
+        debugString.str(""); debugString.clear();
 #endif
         gotoNewPos( x );
     }

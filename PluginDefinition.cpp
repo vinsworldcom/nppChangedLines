@@ -26,11 +26,9 @@
 #include <vector>
 #include <shlwapi.h>
 
-#ifdef DEBUG
-#include <iostream>
-#include <fstream>
-std::wfstream debugFile;
-#define DEBUG_FILE "C:\\Users\\mvincent\\tmp\\ChangedLines.log"
+#ifdef _DEBUG
+#include <sstream>
+std::wstringstream debugString;
 #endif
 
 const TCHAR configFileName[]     = TEXT( "ChangedLines.ini" );
@@ -85,10 +83,6 @@ void pluginInit( HANDLE hModule )
 {
     // Initialize dockable dialog
     _Panel.init( ( HINSTANCE )hModule, NULL );
-
-#ifdef DEBUG    
-    debugFile.open (DEBUG_FILE, std::ios::app);
-#endif
 }
 
 //
@@ -310,8 +304,10 @@ void posTimerproc( HWND /*Arg1*/, UINT /*Arg2*/, UINT_PTR /*Arg3*/, DWORD /*Arg4
 {
     KillTimer( nppData._nppHandle, TIMER_POS );
     tDocPos x = getCurrentPos();
-#ifdef DEBUG
-    debugFile << "TIMER - put:" << x.docName << ":" << x.lineNo << std::endl;
+#ifdef _DEBUG
+    debugString << "TIMER - put:" << x.docName << ":" << x.lineNo << std::endl;
+    OutputDebugString( debugString.str().c_str() );
+    debugString.str(""); debugString.clear();
 #endif
     prevPos.timerPut( x );
 }
@@ -611,10 +607,11 @@ void DockableDlg()
         data.dlgID = DOCKABLE_INDEX;
         ::SendMessage( nppData._nppHandle, NPPM_DMMREGASDCKDLG, 0,
                        ( LPARAM )&data );
-    }
 
-    // UINT state = ::GetMenuState( ::GetMenu( nppData._nppHandle ),
-                                 // funcItem[DOCKABLE_INDEX]._cmdID, MF_BYCOMMAND );
+        ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
+                       funcItem[DOCKABLE_INDEX]._cmdID, MF_CHECKED );
+        return;
+    }
 
     if ( _Panel.isWindowVisible() )
     {
