@@ -470,7 +470,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
             SendMessage( GetDlgItem( hDialog, IDC_LSV1 ), LVM_SETCOLUMNWIDTH, COL_TEXT,
                          LVSCW_AUTOSIZE_USEHEADER );
 
-            redraw();
+            // redraw();
             return FALSE;
         }
 
