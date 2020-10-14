@@ -307,7 +307,7 @@ void posTimerproc( HWND /*Arg1*/, UINT /*Arg2*/, UINT_PTR /*Arg3*/, DWORD /*Arg4
 #ifdef _DEBUG
     debugString << "TIMER - put:" << x.docName << ":" << x.lineNo << std::endl;
     OutputDebugString( debugString.str().c_str() );
-    debugString.str(""); debugString.clear();
+    debugString.str(TEXT("")); debugString.clear();
 #endif
     prevPos.timerPut( x );
 }

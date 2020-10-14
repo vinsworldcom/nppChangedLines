@@ -67,14 +67,14 @@ void gotoPrevPos()
 #ifdef _DEBUG
         debugString << "NEXTPOS.put:" << x.docName << ":" << x.lineNo << std::endl;
         OutputDebugString( debugString.str().c_str() );
-        debugString.str(""); debugString.clear();
+        debugString.str(TEXT("")); debugString.clear();
 #endif
         nextPos.put( x );
         x = prevPos.get();
 #ifdef _DEBUG
         debugString << "    (here) :" << x.docName << ":" << x.lineNo << std::endl;
         OutputDebugString( debugString.str().c_str() );
-        debugString.str(""); debugString.clear();
+        debugString.str(TEXT("")); debugString.clear();
 #endif
         gotoNewPos( x );
     }
@@ -92,7 +92,7 @@ void gotoNextPos()
 #ifdef _DEBUG
             debugString << "prevPos.put:" << x.docName << ":" << x.lineNo << std::endl;
             OutputDebugString( debugString.str().c_str() );
-            debugString.str(""); debugString.clear();
+            debugString.str(TEXT("")); debugString.clear();
 #endif
             prevPos.put( x );
         }
@@ -101,7 +101,7 @@ void gotoNextPos()
 #ifdef _DEBUG
         debugString << "    (here) :" << x.docName << ":" << x.lineNo << std::endl;
         OutputDebugString( debugString.str().c_str() );
-        debugString.str(""); debugString.clear();
+        debugString.str(TEXT("")); debugString.clear();
 #endif
         gotoNewPos( x );
     }
