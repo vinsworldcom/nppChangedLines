@@ -1,10 +1,12 @@
 #include <windows.h>
 #include <shlobj.h>
+#include <string>
 
 #include "..\PluginDefinition.h"
 #include "..\PluginInterface.h"
 #include "SettingsDlg.h"
 #include "resource.h"
+#include "..\resource.h"
 
 extern HINSTANCE g_hInst;
 extern NppData   nppData;
@@ -71,6 +73,12 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
             SendMessage( save, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Arrow" ) );
             SendMessage( save, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Highlight" ) );
 
+            std::string version;
+            version = "<a>";
+            version += VER_STRING;
+            version += "</a>";
+            SetDlgItemTextA(hWndDlg, IDC_STC_VER, version.c_str());
+
             refreshSettings( hWndDlg );
 
             return TRUE;
@@ -103,6 +111,26 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
             }
 
             return FALSE;
+        }
+
+        case WM_NOTIFY:
+        {
+            switch (((LPNMHDR)lParam)->code)
+            {
+                case NM_CLICK:
+                case NM_RETURN:
+                {
+                    PNMLINK pNMLink = (PNMLINK)lParam;
+                    LITEM   item    = pNMLink->item;
+                    HWND ver = GetDlgItem( hWndDlg, IDC_STC_VER );
+
+                    if ((((LPNMHDR)lParam)->hwndFrom == ver) && (item.iLink == 0))
+                        ShellExecute(hWndDlg, TEXT("open"), TEXT("https://github.com/VinsWorldcom/nppChangedLines"), NULL, NULL, SW_SHOWNORMAL);
+
+                    return TRUE;
+                }
+            }
+            break;
         }
 
         case WM_COMMAND:
@@ -248,7 +276,6 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
 
                     return TRUE;
                 }
-
             }
         }
     }
