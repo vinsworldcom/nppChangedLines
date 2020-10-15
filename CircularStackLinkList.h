@@ -6,6 +6,7 @@
 
 #include <cstdio>
 #include <memory>
+#include <vector>
 #include <mutex>
 
 typedef struct
@@ -117,17 +118,16 @@ class circular_buffer
             return size;
         }
 
-        void list(LPSTR *files)
+        void list(std::vector<T> &items)
         {
             std::lock_guard<std::mutex> lock(mutex_);
-            char str[512];
-    
+
             if (!empty())
             {
                 for ( size_t i = 1; i <= size(); i++ )
                 {
-                    sprintf(str, "%u", buf_[( head_ + max_size_ - i ) % max_size_]);
-                    strcpy(files[i-1], str);
+                    auto val = buf_[( head_ + max_size_ - i ) % max_size_];
+                    items.push_back( val );
                 }
             }
         }
