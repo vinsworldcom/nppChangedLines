@@ -117,6 +117,21 @@ class circular_buffer
             return size;
         }
 
+        void list(LPSTR *files)
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            char str[512];
+    
+            if (!empty())
+            {
+                for ( size_t i = 1; i <= size(); i++ )
+                {
+                    sprintf(str, "%u", buf_[( head_ + max_size_ - i ) % max_size_]);
+                    strcpy(files[i-1], str);
+                }
+            }
+        }
+
     private:
         std::mutex mutex_;
         std::unique_ptr<T[]> buf_;
