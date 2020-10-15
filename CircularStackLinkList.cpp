@@ -41,7 +41,14 @@ void gotoNewPos( tDocPos docPos )
 {
     ::SendMessage( nppData._nppHandle, NPPM_DOOPEN, 0,
                    ( LPARAM ) docPos.docName );
+
+    ::SendMessage( getCurScintilla(), SCI_SETVISIBLEPOLICY, CARET_JUMPS | CARET_EVEN, 0 );
+    ::SendMessage( getCurScintilla(), SCI_ENSUREVISIBLEENFORCEPOLICY, docPos.lineNo, 0 );
+
     ::SendMessage( getCurScintilla(), SCI_GOTOLINE, docPos.lineNo, 0 );
+
+    ::SendMessage( getCurScintilla(), SCI_SETVISIBLEPOLICY, CARET_EVEN, 0 );
+    ::SendMessage( getCurScintilla(), SCI_ENSUREVISIBLEENFORCEPOLICY, docPos.lineNo, 0 );
 }
 
 void gotoPrevPos()

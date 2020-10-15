@@ -33,6 +33,9 @@ extern bool g_NppReady;
 extern bool g_GotoIncSave;
 extern bool g_useNppColors;
 
+extern circular_buffer<tDocPos> prevPos;
+extern circular_buffer<tDocPos> nextPos;
+
 LVITEM   LvItem;
 LVCOLUMN LvCol;
 COLORREF colorBg;
@@ -310,6 +313,20 @@ void gotoLine( int idx )
                  reinterpret_cast<LPARAM>( getCurScintilla() ) );
 }
 
+void toolbarDropdown(LPNMTOOLBAR lpnmtb)
+{
+    int	    i = 0;
+    int	    iElements = 0;
+    LPTSTR  *pszPathes;
+
+    if (lpnmtb->iItem == IDC_BTN_PREV) {
+        iElements = prevPos.size();
+    } else if (lpnmtb->iItem == IDC_BTN_NEXT) {
+        iElements = nextPos.size();
+    }
+
+}
+
 INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                                        LPARAM lParam )
 {
@@ -452,6 +469,12 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                         gotoLine( -1 );
 
                     return FALSE;
+                }
+
+                case TBN_DROPDOWN:
+                {
+                    toolbarDropdown((LPNMTOOLBAR)lParam);
+                    return TBDDRET_DEFAULT;
                 }
             }
 
