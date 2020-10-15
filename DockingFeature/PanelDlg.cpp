@@ -17,6 +17,7 @@
 
 #include "PanelDlg.h"
 #include "../PluginDefinition.h"
+#include "../CircularStackLinkList.h"
 #include "SettingsDlg.h"
 #include "resource.h"
 
@@ -49,8 +50,8 @@ const int WS_TOOLBARSTYLE = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN |
 
 TBBUTTON tbButtonsAdd1[] =
 {
-    {MAKELONG( 0, 0 ), IDC_BTN_PREV,     TBSTATE_ENABLED, TBSTYLE_BUTTON, {0}, 0, 0},
-    {MAKELONG( 1, 0 ), IDC_BTN_NEXT,     TBSTATE_ENABLED, TBSTYLE_BUTTON, {0}, 0, 0},
+    {MAKELONG( 0, 0 ), IDC_BTN_PREV,     TBSTATE_ENABLED, TBSTYLE_DROPDOWN, {0}, 0, 0},
+    {MAKELONG( 1, 0 ), IDC_BTN_NEXT,     TBSTATE_ENABLED, TBSTYLE_DROPDOWN, {0}, 0, 0},
     {0,                0,                0,               BTNS_SEP,       {0}, 0, 0},
     {MAKELONG( 2, 0 ), IDC_BTN_CLEARALL, TBSTATE_ENABLED, TBSTYLE_BUTTON, {0}, 0, 0},
     {0,                0,                0,               BTNS_SEP,       {0}, 0, 0},
@@ -63,8 +64,8 @@ const int numButtons1      = sizeButtonArray1 - 3 /* separators */;
 
 static LPCTSTR szToolTip[30] =
 {
-    TEXT( "Previous Change" ),
-    TEXT( "Next Change" ),
+    TEXT( "Previous Position" ),
+    TEXT( "Next Position" ),
     TEXT( "Clear All in Current File" ),
     TEXT( "Find All in Current File" ),
     TEXT( "Settings" ),
@@ -327,13 +328,13 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
             {
                 case IDC_BTN_NEXT:
                 {
-                    gotoNextChange();
+                    gotoNextPos();
                     return TRUE;
                 }
 
                 case IDC_BTN_PREV:
                 {
-                    gotoPrevChange();
+                    gotoPrevPos();
                     return TRUE;
                 }
 
