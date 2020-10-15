@@ -24,6 +24,7 @@
 #include <codecvt>
 #include <commctrl.h>
 #include <string>
+#include <vector>
 #include <windowsx.h>
 
 extern NppData nppData;
@@ -315,16 +316,36 @@ void gotoLine( int idx )
 
 void toolbarDropdown(LPNMTOOLBAR lpnmtb)
 {
-    int	    i = 0;
-    int	    iElements = 0;
-    LPTSTR  *pszPathes;
+    int	i = 0;
+    size_t elements = 0;
+    std::vector<tDocPos> files;
 
     if (lpnmtb->iItem == IDC_BTN_PREV) {
-        iElements = prevPos.size();
+        elements = prevPos.size();
+        prevPos.list(files);
     } else if (lpnmtb->iItem == IDC_BTN_NEXT) {
-        iElements = nextPos.size();
+        elements = nextPos.size();
+        nextPos.list(files);
     }
 
+    POINT pt = {0};
+    HMENU hMenu = ::CreatePopupMenu();
+
+    std::wstring menuItem;
+    for ( i = 0; i < elements; i++ )
+    {
+        menuItem = std::to_wstring(files[i].lineNo + 1);
+        menuItem += TEXT(": ");
+        menuItem += files[i].docName;
+        ::AppendMenu(hMenu, MF_STRING, i+1, menuItem.c_str());
+    }
+
+    ::GetCursorPos(&pt);
+    INT cmd = ::TrackPopupMenu(hMenu, TPM_RETURNCMD, pt.x, pt.y, 0, hDialog, NULL);
+    ::DestroyMenu(hMenu);
+
+    if ( cmd )
+        gotoNewPos( files[cmd-1] );
 }
 
 INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,

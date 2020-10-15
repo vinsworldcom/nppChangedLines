@@ -17,7 +17,7 @@ extern std::wstringstream debugString;
 
 extern NppData nppData;
 
-#define STACK_SIZE 20
+#define STACK_SIZE 25
 
 circular_buffer<tDocPos> prevPos( STACK_SIZE );
 circular_buffer<tDocPos> nextPos( STACK_SIZE );
