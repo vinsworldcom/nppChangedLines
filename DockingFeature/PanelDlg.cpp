@@ -66,12 +66,12 @@ TBBUTTON tbButtonsAdd1[] =
 const int sizeButtonArray1 = sizeof( tbButtonsAdd1 ) / sizeof( TBBUTTON );
 const int numButtons1      = sizeButtonArray1 - 3 /* separators */;
 
-static LPCTSTR szToolTip[30] =
+static LPCTSTR szToolTip[45] =
 {
     TEXT( "Previous Position" ),
     TEXT( "Next Position" ),
-    TEXT( "Clear All in Current File" ),
-    TEXT( "Find All in Current File" ),
+    TEXT( "Clear Changes in Current File" ),
+    TEXT( "Find in Files in Current Folder" ),
     TEXT( "Settings" ),
 };
 
