@@ -292,7 +292,7 @@ void initDialog()
     clearList();
 }
 
-void gotoLine( int idx )
+void getAndGotoLine( int idx )
 {
     TCHAR lineno[MAX_PATH] = {0};
 
@@ -309,7 +309,7 @@ void gotoLine( int idx )
 
     SendMessage( GetDlgItem( hDialog, IDC_LSV1 ), LVM_GETITEMTEXT, idx,
                  ( LPARAM )&LvItem );
-    SendMessage( getCurScintilla(), SCI_GOTOLINE, std::stoi( lineno ) - 1, 0 );
+    gotoLine( std::stoi( lineno ) - 1 );
     PostMessage( nppData._nppHandle, WM_COMMAND, SCEN_SETFOCUS << 16,
                  reinterpret_cast<LPARAM>( getCurScintilla() ) );
 }
@@ -421,7 +421,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                     HWND hWndCtrl = GetFocus();
 
                     if ( hWndCtrl == GetDlgItem( hDialog, IDC_LSV1 ) )
-                        gotoLine( -1 );
+                        getAndGotoLine( -1 );
 
                     return TRUE;
                 }
@@ -461,7 +461,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                         if ( ht.iItem == -1 )
                             break;
 
-                        gotoLine( ht.iItem );
+                        getAndGotoLine( ht.iItem );
                     }
 
                     return TRUE;
@@ -487,7 +487,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                             ( ( pnkd->wVKey == VK_RETURN )
                               || ( pnkd->wVKey == VK_SPACE )
                             ) )
-                        gotoLine( -1 );
+                        getAndGotoLine( -1 );
 
                     return FALSE;
                 }

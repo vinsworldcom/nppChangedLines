@@ -449,6 +449,19 @@ void doEnable()
 
 }
 
+void gotoLine(int line)
+{
+    HWND hCurScintilla = getCurScintilla();
+
+    ::SendMessage( hCurScintilla, SCI_SETVISIBLEPOLICY, CARET_JUMPS | CARET_EVEN, 0 );
+    ::SendMessage( hCurScintilla, SCI_ENSUREVISIBLEENFORCEPOLICY, line, 0 );
+
+    ::SendMessage( hCurScintilla, SCI_GOTOLINE, line, 0 );
+
+    ::SendMessage( hCurScintilla, SCI_SETVISIBLEPOLICY, CARET_EVEN, 0 );
+    ::SendMessage( hCurScintilla, SCI_ENSUREVISIBLEENFORCEPOLICY, line, 0 );
+}
+
 void gotoNextChange()
 {
     HWND hCurScintilla = getCurScintilla();
@@ -478,7 +491,7 @@ void gotoNextChange()
         line = findNextMark( hCurScintilla, 0, mask );
 
     if ( line != -1 )
-        SendMessage( hCurScintilla, SCI_GOTOLINE, line, 0 );
+        gotoLine( line );
 }
 
 void gotoPrevChange()
@@ -513,7 +526,7 @@ void gotoPrevChange()
     }
 
     if ( line != -1 )
-        SendMessage( hCurScintilla, SCI_GOTOLINE, line, 0 );
+       gotoLine( line );
 }
 
 int AddMarkFromLine( HWND hCurScintilla, int line )

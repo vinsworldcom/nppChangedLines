@@ -113,6 +113,7 @@ void InitPlugin();
 void DestroyPlugin();
 void clearAllCF();
 void doEnable();
+void gotoLine( int );
 void gotoNextChange();
 void gotoPrevChange();
 void SetBookmark( HWND, int, Sci_Position );
