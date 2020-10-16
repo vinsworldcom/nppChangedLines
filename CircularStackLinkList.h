@@ -6,6 +6,7 @@
 
 #include <cstdio>
 #include <memory>
+#include <vector>
 #include <mutex>
 
 typedef struct
@@ -115,6 +116,20 @@ class circular_buffer
             }
 
             return size;
+        }
+
+        void list(std::vector<T> &items)
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+
+            if (!empty())
+            {
+                for ( size_t i = 1; i <= size(); i++ )
+                {
+                    auto val = buf_[( head_ + max_size_ - i ) % max_size_];
+                    items.push_back( val );
+                }
+            }
         }
 
     private:

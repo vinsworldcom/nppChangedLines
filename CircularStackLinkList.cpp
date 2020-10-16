@@ -17,7 +17,7 @@ extern std::wstringstream debugString;
 
 extern NppData nppData;
 
-#define STACK_SIZE 20
+#define STACK_SIZE 25
 
 circular_buffer<tDocPos> prevPos( STACK_SIZE );
 circular_buffer<tDocPos> nextPos( STACK_SIZE );
@@ -41,7 +41,14 @@ void gotoNewPos( tDocPos docPos )
 {
     ::SendMessage( nppData._nppHandle, NPPM_DOOPEN, 0,
                    ( LPARAM ) docPos.docName );
+
+    ::SendMessage( getCurScintilla(), SCI_SETVISIBLEPOLICY, CARET_JUMPS | CARET_EVEN, 0 );
+    ::SendMessage( getCurScintilla(), SCI_ENSUREVISIBLEENFORCEPOLICY, docPos.lineNo, 0 );
+
     ::SendMessage( getCurScintilla(), SCI_GOTOLINE, docPos.lineNo, 0 );
+
+    ::SendMessage( getCurScintilla(), SCI_SETVISIBLEPOLICY, CARET_EVEN, 0 );
+    ::SendMessage( getCurScintilla(), SCI_ENSUREVISIBLEENFORCEPOLICY, docPos.lineNo, 0 );
 }
 
 void gotoPrevPos()

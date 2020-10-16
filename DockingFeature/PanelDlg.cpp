@@ -17,12 +17,14 @@
 
 #include "PanelDlg.h"
 #include "../PluginDefinition.h"
+#include "../CircularStackLinkList.h"
 #include "SettingsDlg.h"
 #include "resource.h"
 
 #include <codecvt>
 #include <commctrl.h>
 #include <string>
+#include <vector>
 #include <windowsx.h>
 
 extern NppData nppData;
@@ -31,6 +33,9 @@ extern HWND hDialog;
 extern bool g_NppReady;
 extern bool g_GotoIncSave;
 extern bool g_useNppColors;
+
+extern circular_buffer<tDocPos> prevPos;
+extern circular_buffer<tDocPos> nextPos;
 
 LVITEM   LvItem;
 LVCOLUMN LvCol;
@@ -49,8 +54,8 @@ const int WS_TOOLBARSTYLE = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN |
 
 TBBUTTON tbButtonsAdd1[] =
 {
-    {MAKELONG( 0, 0 ), IDC_BTN_PREV,     TBSTATE_ENABLED, TBSTYLE_BUTTON, {0}, 0, 0},
-    {MAKELONG( 1, 0 ), IDC_BTN_NEXT,     TBSTATE_ENABLED, TBSTYLE_BUTTON, {0}, 0, 0},
+    {MAKELONG( 0, 0 ), IDC_BTN_PREV,     TBSTATE_ENABLED, TBSTYLE_DROPDOWN, {0}, 0, 0},
+    {MAKELONG( 1, 0 ), IDC_BTN_NEXT,     TBSTATE_ENABLED, TBSTYLE_DROPDOWN, {0}, 0, 0},
     {0,                0,                0,               BTNS_SEP,       {0}, 0, 0},
     {MAKELONG( 2, 0 ), IDC_BTN_CLEARALL, TBSTATE_ENABLED, TBSTYLE_BUTTON, {0}, 0, 0},
     {0,                0,                0,               BTNS_SEP,       {0}, 0, 0},
@@ -63,8 +68,8 @@ const int numButtons1      = sizeButtonArray1 - 3 /* separators */;
 
 static LPCTSTR szToolTip[30] =
 {
-    TEXT( "Previous Change" ),
-    TEXT( "Next Change" ),
+    TEXT( "Previous Position" ),
+    TEXT( "Next Position" ),
     TEXT( "Clear All in Current File" ),
     TEXT( "Find All in Current File" ),
     TEXT( "Settings" ),
@@ -309,6 +314,40 @@ void gotoLine( int idx )
                  reinterpret_cast<LPARAM>( getCurScintilla() ) );
 }
 
+void toolbarDropdown(LPNMTOOLBAR lpnmtb)
+{
+    int	i = 0;
+    size_t elements = 0;
+    std::vector<tDocPos> files;
+
+    if (lpnmtb->iItem == IDC_BTN_PREV) {
+        elements = prevPos.size();
+        prevPos.list(files);
+    } else if (lpnmtb->iItem == IDC_BTN_NEXT) {
+        elements = nextPos.size();
+        nextPos.list(files);
+    }
+
+    POINT pt = {0};
+    HMENU hMenu = ::CreatePopupMenu();
+
+    std::wstring menuItem;
+    for ( i = 0; i < elements; i++ )
+    {
+        menuItem = std::to_wstring(files[i].lineNo + 1);
+        menuItem += TEXT(": ");
+        menuItem += files[i].docName;
+        ::AppendMenu(hMenu, MF_STRING, i+1, menuItem.c_str());
+    }
+
+    ::GetCursorPos(&pt);
+    INT cmd = ::TrackPopupMenu(hMenu, TPM_RETURNCMD, pt.x, pt.y, 0, hDialog, NULL);
+    ::DestroyMenu(hMenu);
+
+    if ( cmd )
+        gotoNewPos( files[cmd-1] );
+}
+
 INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                                        LPARAM lParam )
 {
@@ -327,13 +366,13 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
             {
                 case IDC_BTN_NEXT:
                 {
-                    gotoNextChange();
+                    gotoNextPos();
                     return TRUE;
                 }
 
                 case IDC_BTN_PREV:
                 {
-                    gotoPrevChange();
+                    gotoPrevPos();
                     return TRUE;
                 }
 
@@ -451,6 +490,12 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                         gotoLine( -1 );
 
                     return FALSE;
+                }
+
+                case TBN_DROPDOWN:
+                {
+                    toolbarDropdown((LPNMTOOLBAR)lParam);
+                    return TBDDRET_DEFAULT;
                 }
             }
 

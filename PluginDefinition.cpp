@@ -75,6 +75,7 @@ bool g_useNppColors    = false;
 
 extern circular_buffer<tDocPos> prevPos;
 extern circular_buffer<tDocPos> nextPos;
+tDocPos lastPos = {};
 
 //
 // Initialize your plugin data here
@@ -304,12 +305,23 @@ void posTimerproc( HWND /*Arg1*/, UINT /*Arg2*/, UINT_PTR /*Arg3*/, DWORD /*Arg4
 {
     KillTimer( nppData._nppHandle, TIMER_POS );
     tDocPos x = getCurrentPos();
+
+    if ( !_tcscmp( lastPos.docName, x.docName ) )
+    {
+        int lines = ( int )::SendMessage( getCurScintilla(), SCI_LINESONSCREEN, 0, 0 );
+        int plusMinus = int( lines / 2 );
+        if (( lastPos.lineNo > x.lineNo - plusMinus ) &&
+            ( lastPos.lineNo < x.lineNo + plusMinus ))
+            return;
+    }
+
 #ifdef _DEBUG
     debugString << "TIMER - put:" << x.docName << ":" << x.lineNo << std::endl;
     OutputDebugString( debugString.str().c_str() );
     debugString.str(TEXT("")); debugString.clear();
 #endif
     prevPos.timerPut( x );
+    lastPos = x;
 }
 
 void updatePosTimer()
