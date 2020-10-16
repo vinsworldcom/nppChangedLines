@@ -30,3 +30,5 @@ FILETYPE VFT_DLL
         VALUE "Translation", 0x0409, 1252
     }
 }
+
+IDB_TB_CL BITMAP "DockingFeature\\res\\ChangedLines.bmp"
