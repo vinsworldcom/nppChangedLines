@@ -61,14 +61,14 @@ As you navigate through opened Notepad++ documents, ChangedLines will record the
 There are plugin menu options, shortcuts and a docking panel to help you navigate through your changes.
 
 
-+ **Shortcut keys** - by default, CTRL+ALT+Z and CTRL+ALT+Y are mapped to the previous and next document positions respectively.  This can be changed with Notepad++ Settings => Shortcut Mapper...
++ **Shortcut keys** - by default, `CTRL+ALT+Z` and `CTRL+ALT+Y` are mapped to the previous and next document positions respectively.  This can be changed with Notepad++ Settings => Shortcut Mapper...
 
 + **Margin** - Within the current document, double-clicking the ChangedLines margin will move to the next change.  Shift+double-click will move to the previous.
 
 
 ### Docking Panel
 
-There is a Notepad++ docking panel that shows a list of the changes in the current document.  Double-clicking, Enter or Spacebar will go to the beginning of selected line.  Escape will switch focus to the current document at the current position without navigating.
+There is a Notepad++ docking panel that shows a list of the changes in the current document.  Double-clicking, `Enter` or `Spacebar` will go to the beginning of selected line.  Escape will switch focus to the current document at the current position without navigating.
 
 The "Previous Position" and "Next Position" toolbar buttons will move to the previous and next saved document positions respectively.
 
