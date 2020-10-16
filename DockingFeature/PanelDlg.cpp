@@ -405,7 +405,9 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
 
                 case IDC_BTN_SEARCH:
                 {
-                    updateList();
+                    TCHAR pathName[MAX_PATH] = {0};
+                    ::SendMessage( nppData._nppHandle, NPPM_GETCURRENTDIRECTORY, MAX_PATH, ( LPARAM )pathName );
+                    ::SendMessage( nppData._nppHandle, NPPM_LAUNCHFINDINFILESDLG, (WPARAM)pathName, NULL );
                     return TRUE;
                 }
 
