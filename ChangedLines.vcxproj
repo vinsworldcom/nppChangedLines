@@ -188,6 +188,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="ChangedLines.ico" />
+    <Image Include="DockingFeature\res\ChangedLines.bmp" />
     <Image Include="DockingFeature\res\Toolbar1.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

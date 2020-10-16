@@ -16,6 +16,7 @@
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 #include "PluginDefinition.h"
+#include "resource.h"
 #include "CircularStackLinkList.h"
 #include "DockingFeature/PanelDlg.h"
 #include "DockingFeature/SettingsDlg.h"
@@ -44,6 +45,7 @@ const TCHAR iniKeyMarkerSave[]   = TEXT( "MarkerSave" );
 const TCHAR iniUseNppColors[]    = TEXT( "UseNppColors" );
 
 DemoDlg _Panel;
+toolbarIcons g_TBCL;
 //
 // The plugin data that Notepad++ needs
 //
@@ -66,9 +68,6 @@ long g_SaveColor       = DefaultSaveColor;
 int  g_ChangeMarkStyle = DefaultChangeStyle;
 int  g_SaveMarkStyle   = DefaultSaveStyle;
 bool g_useNppColors    = false;
-
-#define ENABLE_INDEX 0
-#define DOCKABLE_INDEX 1
 
 #define TIMER_POS       2
 #define TIMER_POS_DELAY 2000
@@ -116,6 +115,15 @@ void pluginCleanUp()
                                  iniFilePath );
     ::WritePrivateProfileString( sectionName, iniUseNppColors,
                                  g_useNppColors ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
+
+    if (g_TBCL.hToolbarBmp) {
+        ::DeleteObject(g_TBCL.hToolbarBmp);
+        g_TBCL.hToolbarBmp = nullptr;
+    }
+    if (g_TBCL.hToolbarIcon) {
+        ::DestroyIcon(g_TBCL.hToolbarIcon);
+        g_TBCL.hToolbarIcon = nullptr;
+    }
 }
 
 //

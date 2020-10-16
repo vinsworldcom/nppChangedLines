@@ -24,4 +24,9 @@
 
 /* ADDITIONAL DEFINITIONS */
 
+#define ENABLE_INDEX 0
+#define DOCKABLE_INDEX 1
+
+#define IDB_TB_CL 1001
+
 #endif
