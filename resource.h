@@ -7,8 +7,8 @@
 /* VERSION DEFINITIONS */
 #define VER_MAJOR   0
 #define VER_MINOR   2
-#define VER_RELEASE 3
-#define VER_BUILD   2
+#define VER_RELEASE 4
+#define VER_BUILD   1
 #define VER_STRING  STR(VER_MAJOR) "." STR(VER_MINOR) "." STR(VER_RELEASE) "." STR(VER_BUILD)
 
 #define FILE_DESCRIPTION  "Notepad++ Plugin providing changed line highlighting."
@@ -23,5 +23,10 @@
 #define PRODUCT_VERSION	  VER_STRING
 
 /* ADDITIONAL DEFINITIONS */
+
+#define ENABLE_INDEX 0
+#define DOCKABLE_INDEX 1
+
+#define IDB_TB_CL 1001
 
 #endif

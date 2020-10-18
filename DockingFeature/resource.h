@@ -15,8 +15,8 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-#ifndef RESOURCE_H
-#define RESOURCE_H
+#ifndef DOCKINGFEATURE_RESOURCE_H
+#define DOCKINGFEATURE_RESOURCE_H
 
 
 #ifndef IDC_STATIC
@@ -61,4 +61,6 @@
 #define IDC_BTN_COLORSAVEDEF   (IDD_SETTINGS + 12)
 #define IDC_CBO_MARKSAVE       (IDD_SETTINGS + 13)
 
-#endif // RESOURCE_H
+#define IDC_STC_VER            (IDD_SETTINGS + 14)
+
+#endif // DOCKINGFEATURE_RESOURCE_H

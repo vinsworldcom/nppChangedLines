@@ -89,7 +89,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;ChangedLines_EXPORTS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -106,7 +106,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;ChangedLines_EXPORTS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -162,6 +162,7 @@
     <ClCompile Include="DockingFeature\StaticDialog.cpp" />
     <ClCompile Include="ChangedLines.cpp" />
     <ClCompile Include="PluginDefinition.cpp" />
+    <ClCompile Include="CircularStackLinkList.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DockingFeature\Docking.h" />
@@ -176,7 +177,8 @@
     <ClInclude Include="Notepad_plus_msgs.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="PluginDefinition.h" />
-    <ClInclude Include="PluginInterface.h" />
+    <ClInclude Include="PluginDefinition.h" />
+    <ClInclude Include="CircularStackLinkList.h" />
     <ClInclude Include="Scintilla.h" />
     <ClInclude Include="Sci_Position_.h" />
   </ItemGroup>
@@ -186,6 +188,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="ChangedLines.ico" />
+    <Image Include="DockingFeature\res\ChangedLines.bmp" />
     <Image Include="DockingFeature\res\Toolbar1.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

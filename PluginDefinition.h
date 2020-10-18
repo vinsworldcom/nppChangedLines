@@ -38,7 +38,7 @@ const TCHAR NPP_PLUGIN_NAME[] = TEXT( "Changed &Lines" );
 //
 // Here define the number of your plugin commands
 //
-const int nbFunc = 8;
+const int nbFunc = 11;
 
 //
 // Initialization of your plugin data
@@ -108,10 +108,12 @@ void updateSaveColor();
 void updateChangeStyle();
 void updateSaveStyle();
 void updatePanel();
+void updatePosition();
 void InitPlugin();
 void DestroyPlugin();
 void clearAllCF();
 void doEnable();
+void gotoLine( int );
 void gotoNextChange();
 void gotoPrevChange();
 void SetBookmark( HWND, int, Sci_Position );

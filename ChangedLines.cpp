@@ -19,6 +19,7 @@
 ///----------------------------------------------------------------------------
 
 #include "PluginDefinition.h"
+#include "resource.h"
 #include "Scintilla.h"
 
 extern FuncItem funcItem[nbFunc];
@@ -27,6 +28,7 @@ extern NppData   nppData;
 extern bool      g_NppReady;
 extern bool      g_enabled;
 extern int       g_Margin;
+extern toolbarIcons g_TBCL;
 
 static Sci_Position preModifyPos = -1;
 static Sci_Position preModifyLineAdd = -1;
@@ -77,6 +79,13 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
 
     switch (notifyCode->nmhdr.code)
     {
+        case NPPN_TBMODIFICATION:
+        {
+            g_TBCL.hToolbarBmp = (HBITMAP)::LoadImage((HINSTANCE)g_hInst, MAKEINTRESOURCE(IDB_TB_CL), IMAGE_BITMAP, 0, 0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
+            ::SendMessage(nppData._nppHandle, NPPM_ADDTOOLBARICON, (WPARAM)funcItem[DOCKABLE_INDEX]._cmdID, (LPARAM)&g_TBCL);
+        }
+        break;
+
         case NPPN_READY:
         {
             g_NppReady = true;
@@ -194,6 +203,7 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
                 }
             }
 
+            updatePosition();
             updatePanel();
         }
         break;

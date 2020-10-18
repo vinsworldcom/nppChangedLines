@@ -16,6 +16,8 @@
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 #include "PluginDefinition.h"
+#include "resource.h"
+#include "CircularStackLinkList.h"
 #include "DockingFeature/PanelDlg.h"
 #include "DockingFeature/SettingsDlg.h"
 #include "menuCmdID.h"
@@ -24,6 +26,11 @@
 #include <string>
 #include <vector>
 #include <shlwapi.h>
+
+#ifdef _DEBUG
+#include <sstream>
+std::wstringstream debugString;
+#endif
 
 const TCHAR configFileName[]     = TEXT( "ChangedLines.ini" );
 const TCHAR sectionName[]        = TEXT( "Settings" );
@@ -38,6 +45,7 @@ const TCHAR iniKeyMarkerSave[]   = TEXT( "MarkerSave" );
 const TCHAR iniUseNppColors[]    = TEXT( "UseNppColors" );
 
 DemoDlg _Panel;
+toolbarIcons g_TBCL;
 //
 // The plugin data that Notepad++ needs
 //
@@ -61,8 +69,12 @@ int  g_ChangeMarkStyle = DefaultChangeStyle;
 int  g_SaveMarkStyle   = DefaultSaveStyle;
 bool g_useNppColors    = false;
 
-#define ENABLE_INDEX 0
-#define DOCKABLE_INDEX 1
+#define TIMER_POS       2
+#define TIMER_POS_DELAY 2000
+
+extern circular_buffer<tDocPos> prevPos;
+extern circular_buffer<tDocPos> nextPos;
+tDocPos lastPos = {};
 
 //
 // Initialize your plugin data here
@@ -104,6 +116,15 @@ void pluginCleanUp()
                                  iniFilePath );
     ::WritePrivateProfileString( sectionName, iniUseNppColors,
                                  g_useNppColors ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
+
+    if (g_TBCL.hToolbarBmp) {
+        ::DeleteObject(g_TBCL.hToolbarBmp);
+        g_TBCL.hToolbarBmp = nullptr;
+    }
+    if (g_TBCL.hToolbarIcon) {
+        ::DestroyIcon(g_TBCL.hToolbarIcon);
+        g_TBCL.hToolbarIcon = nullptr;
+    }
 }
 
 //
@@ -175,14 +196,19 @@ void commandMenuInit()
     setCommand( DOCKABLE_INDEX, TEXT( "Changed &Lines Panel" ), DockableDlg,
                 NULL, false );
     setCommand( 2, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
-    setCommand( 3, TEXT( "Goto &Next Change" ), gotoNextChange, NextChgKey,
+    setCommand( 3, TEXT( "Goto &Next Change" ), gotoNextChange, NULL,
                 false );
-    setCommand( 4, TEXT( "Goto &Previous Change" ), gotoPrevChange, PreChgKey,
+    setCommand( 4, TEXT( "Goto &Previous Change" ), gotoPrevChange, NULL,
                 false );
     setCommand( 5, TEXT( "&Clear all in Current File" ), clearAllCF, NULL,
                 false );
     setCommand( 6, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
-    setCommand( 7, TEXT( "&Settings" ), doSettings, NULL,
+    setCommand( 7, TEXT( "Goto Next Position" ), gotoNextPos, NextChgKey,
+                false );
+    setCommand( 8, TEXT( "Goto Previous Position" ), gotoPrevPos, PreChgKey,
+                false );
+    setCommand( 9, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
+    setCommand( 10, TEXT( "&Settings" ), doSettings, NULL,
                 false );
 }
 
@@ -281,6 +307,40 @@ void updatePanel()
 {
     if ( _Panel.isVisible() )
         updateListTimer();
+}
+
+void posTimerproc( HWND /*Arg1*/, UINT /*Arg2*/, UINT_PTR /*Arg3*/, DWORD /*Arg4*/)
+{
+    KillTimer( nppData._nppHandle, TIMER_POS );
+    tDocPos x = getCurrentPos();
+
+    if ( !_tcscmp( lastPos.docName, x.docName ) )
+    {
+        int lines = ( int )::SendMessage( getCurScintilla(), SCI_LINESONSCREEN, 0, 0 );
+        int plusMinus = int( lines / 2 );
+        if (( lastPos.lineNo > x.lineNo - plusMinus ) &&
+            ( lastPos.lineNo < x.lineNo + plusMinus ))
+            return;
+    }
+
+#ifdef _DEBUG
+    debugString << "TIMER - put:" << x.docName << ":" << x.lineNo << std::endl;
+    OutputDebugString( debugString.str().c_str() );
+    debugString.str(TEXT("")); debugString.clear();
+#endif
+    prevPos.timerPut( x );
+    lastPos = x;
+}
+
+void updatePosTimer()
+{
+    KillTimer( nppData._nppHandle, TIMER_POS );
+    SetTimer( nppData._nppHandle, TIMER_POS, TIMER_POS_DELAY, ( TIMERPROC )posTimerproc );
+}
+
+void updatePosition()
+{
+    updatePosTimer();
 }
 
 void InitPlugin()
@@ -389,6 +449,19 @@ void doEnable()
 
 }
 
+void gotoLine(int line)
+{
+    HWND hCurScintilla = getCurScintilla();
+
+    ::SendMessage( hCurScintilla, SCI_SETVISIBLEPOLICY, CARET_JUMPS | CARET_EVEN, 0 );
+    ::SendMessage( hCurScintilla, SCI_ENSUREVISIBLEENFORCEPOLICY, line, 0 );
+
+    ::SendMessage( hCurScintilla, SCI_GOTOLINE, line, 0 );
+
+    ::SendMessage( hCurScintilla, SCI_SETVISIBLEPOLICY, CARET_EVEN, 0 );
+    ::SendMessage( hCurScintilla, SCI_ENSUREVISIBLEENFORCEPOLICY, line, 0 );
+}
+
 void gotoNextChange()
 {
     HWND hCurScintilla = getCurScintilla();
@@ -418,7 +491,7 @@ void gotoNextChange()
         line = findNextMark( hCurScintilla, 0, mask );
 
     if ( line != -1 )
-        SendMessage( hCurScintilla, SCI_GOTOLINE, line, 0 );
+        gotoLine( line );
 }
 
 void gotoPrevChange()
@@ -453,7 +526,7 @@ void gotoPrevChange()
     }
 
     if ( line != -1 )
-        SendMessage( hCurScintilla, SCI_GOTOLINE, line, 0 );
+       gotoLine( line );
 }
 
 int AddMarkFromLine( HWND hCurScintilla, int line )
@@ -567,10 +640,11 @@ void DockableDlg()
         data.dlgID = DOCKABLE_INDEX;
         ::SendMessage( nppData._nppHandle, NPPM_DMMREGASDCKDLG, 0,
                        ( LPARAM )&data );
-    }
 
-    // UINT state = ::GetMenuState( ::GetMenu( nppData._nppHandle ),
-                                 // funcItem[DOCKABLE_INDEX]._cmdID, MF_BYCOMMAND );
+        ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
+                       funcItem[DOCKABLE_INDEX]._cmdID, MF_CHECKED );
+        return;
+    }
 
     if ( _Panel.isWindowVisible() )
     {
