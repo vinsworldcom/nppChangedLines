@@ -160,7 +160,7 @@ void updateList()
     if ( g_GotoIncSave )
         mask |= SAVE_MASK;
 
-    int line = 0;
+    Sci_Position line = 0;
     int i    = 0;
 
     while ( true )
@@ -171,7 +171,7 @@ void updateList()
             break;
 
 // TODO:2020-01-19:MVINCENT:  ListView, SCI_GETLINE, https://stackoverflow.com/questions/18536125/dynamic-memory-allocation-to-char-array
-        int lineLen = ( int )::SendMessage( getCurScintilla(), SCI_GETLINE, line,
+        Sci_Position lineLen = ( Sci_Position )::SendMessage( getCurScintilla(), SCI_GETLINE, line,
                                             ( LPARAM ) 0 );
         char *array = new char[ lineLen + 1 ];
         SendMessage( getCurScintilla(), SCI_GETLINE, line, ( LPARAM ) array );
@@ -316,7 +316,7 @@ void getAndGotoLine( int idx )
 
 void toolbarDropdown(LPNMTOOLBAR lpnmtb)
 {
-    int	i = 0;
+    size_t i = 0;
     size_t elements = 0;
     std::vector<tDocPos> files;
 
@@ -471,7 +471,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
 
                 case TTN_GETDISPINFO: /* TTN_NEEDTEXT */
                 {
-                    UINT idButton;
+                    UINT_PTR idButton;
                     LPTOOLTIPTEXT lpttt;
 
                     lpttt           = ( LPTOOLTIPTEXT ) lParam;

@@ -174,17 +174,17 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
                 {
                     if ( ModifyType & SC_PERFORMED_UNDO )
                     {
-                        int line = -1;
+                        Sci_Position line = -1;
 
                         if ( notifyCode->linesAdded == 0 && preModifyPos != pos && preModifyPos != -1 )
                         {
-                            line = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, preModifyPos, 0 );
+                            line = ( Sci_Position )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, preModifyPos, 0 );
                             DelBookmark( hCurScintilla, line, preModifyLineAdd );
                         }
          
                         if ( notifyCode->linesAdded != 0 || ( ModifyType & SC_LASTSTEPINUNDOREDO ) )
                         {
-                            line = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, pos, 0 );
+                            line = ( Sci_Position )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, pos, 0 );
                             DelBookmark( hCurScintilla, line, notifyCode->linesAdded );
                             preModifyPos = -1;
                         }
