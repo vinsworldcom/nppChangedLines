@@ -12,7 +12,7 @@
 typedef struct
 {
     TCHAR docName[MAX_PATH];
-    int lineNo;
+    Sci_Position lineNo;
 } tDocPos;
 
 template <class T>

@@ -101,7 +101,7 @@ enum MarkType
 };
 
 HWND getCurScintilla();
-int findNextMark( HWND, int, int );
+Sci_Position findNextMark( HWND, Sci_Position, int );
 void updateWidth();
 void updateChangeColor();
 void updateSaveColor();
@@ -113,11 +113,11 @@ void InitPlugin();
 void DestroyPlugin();
 void clearAllCF();
 void doEnable();
-void gotoLine( int );
+void gotoLine( Sci_Position );
 void gotoNextChange();
 void gotoPrevChange();
-void SetBookmark( HWND, int, Sci_Position );
-void DelBookmark( HWND, int, Sci_Position );
+void SetBookmark( HWND, Sci_Position, Sci_Position );
+void DelBookmark( HWND, Sci_Position, Sci_Position );
 void convertChangeToSave();
 void DockableDlg();
 

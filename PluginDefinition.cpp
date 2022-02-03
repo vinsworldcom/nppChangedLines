@@ -252,7 +252,7 @@ HWND getCurScintilla()
            nppData._scintillaSecondHandle;
 }
 
-int findNextMark( HWND hCurScintilla, int searchStart, int mask )
+Sci_Position findNextMark( HWND hCurScintilla, Sci_Position searchStart, int mask )
 {
     return ( ( int )::SendMessage( hCurScintilla, SCI_MARKERNEXT, searchStart,
                                    mask ) );
@@ -316,8 +316,8 @@ void posTimerproc( HWND /*Arg1*/, UINT /*Arg2*/, UINT_PTR /*Arg3*/, DWORD /*Arg4
 
     if ( !_tcscmp( lastPos.docName, x.docName ) )
     {
-        int lines = ( int )::SendMessage( getCurScintilla(), SCI_LINESONSCREEN, 0, 0 );
-        int plusMinus = int( lines / 2 );
+        Sci_Position lines = ( Sci_Position )::SendMessage( getCurScintilla(), SCI_LINESONSCREEN, 0, 0 );
+        Sci_Position plusMinus = Sci_Position( lines / 2 );
         if (( lastPos.lineNo > x.lineNo - plusMinus ) &&
             ( lastPos.lineNo < x.lineNo + plusMinus ))
             return;
@@ -449,7 +449,7 @@ void doEnable()
 
 }
 
-void gotoLine(int line)
+void gotoLine(Sci_Position line)
 {
     HWND hCurScintilla = getCurScintilla();
 
@@ -466,9 +466,9 @@ void gotoNextChange()
 {
     HWND hCurScintilla = getCurScintilla();
 
-    int line = 0;
-    int pos = ( int )::SendMessage( hCurScintilla, SCI_GETCURRENTPOS, 0, 0 );
-    int searchStart = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
+    Sci_Position line = 0;
+    Sci_Position pos = ( Sci_Position )::SendMessage( hCurScintilla, SCI_GETCURRENTPOS, 0, 0 );
+    Sci_Position searchStart = ( Sci_Position )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
                                             pos, 0 );
 
     int mask = CHANGE_MASK;
@@ -529,7 +529,7 @@ void gotoPrevChange()
        gotoLine( line );
 }
 
-int AddMarkFromLine( HWND hCurScintilla, int line )
+int AddMarkFromLine( HWND hCurScintilla, Sci_Position line )
 {
     int markHandle = -1;
     int state = ( int )::SendMessage( hCurScintilla, SCI_MARKERGET, line, 0 );
@@ -545,7 +545,7 @@ int AddMarkFromLine( HWND hCurScintilla, int line )
     return markHandle;
 }
 
-void SetBookmark( HWND hCurScintilla, int lineNo, Sci_Position linesAdded )
+void SetBookmark( HWND hCurScintilla, Sci_Position lineNo, Sci_Position linesAdded )
 {
     int handle = AddMarkFromLine( hCurScintilla, lineNo );
 
@@ -554,12 +554,12 @@ void SetBookmark( HWND hCurScintilla, int lineNo, Sci_Position linesAdded )
 
     if ( linesAdded > 0 )
     {
-        for ( int line = 1; line <= linesAdded; line++ )
+        for ( Sci_Position line = 1; line <= linesAdded; line++ )
             AddMarkFromLine( hCurScintilla, lineNo + line );
     }
 }
 
-bool RemoveMarkFromLine( HWND hCurScintilla, int line )
+bool RemoveMarkFromLine( HWND hCurScintilla, Sci_Position line )
 {
     int state = ( int )::SendMessage( hCurScintilla, SCI_MARKERGET, line, 0 );
 
@@ -574,7 +574,7 @@ bool RemoveMarkFromLine( HWND hCurScintilla, int line )
     return true;
 }
 
-void DelBookmark( HWND hCurScintilla, int lineNo, Sci_Position lineAdd )
+void DelBookmark( HWND hCurScintilla, Sci_Position lineNo, Sci_Position lineAdd )
 {
     bool canUndoFlag = SendMessage( hCurScintilla, SCI_CANUNDO, 0, 0 );
 
@@ -585,13 +585,13 @@ void DelBookmark( HWND hCurScintilla, int lineNo, Sci_Position lineAdd )
         return;
     }
 
-    int lineB = lineNo;
-    int lineE = lineNo + lineAdd;
+    Sci_Position lineB = lineNo;
+    Sci_Position lineE = lineNo + lineAdd;
 
     if ( lineAdd < 0 )
         lineE = lineNo - lineAdd;
 
-    for ( int line = lineB; line <= lineE; line++ )
+    for ( Sci_Position line = lineB; line <= lineE; line++ )
         RemoveMarkFromLine( hCurScintilla, line );
 }
 
@@ -599,11 +599,11 @@ void convertChangeToSave()
 {
     HWND hCurScintilla = getCurScintilla();
 
-    int pos = 0;
+    Sci_Position pos = 0;
 
     while ( true )
     {
-        int line = findNextMark( hCurScintilla, pos, CHANGE_MASK );
+        Sci_Position line = findNextMark( hCurScintilla, pos, CHANGE_MASK );
 
         if ( line == -1 )
             break;
@@ -632,7 +632,7 @@ void DockableDlg()
 
         data.hIconTab = ( HICON )::LoadImage( _Panel.getHinst(),
                                               MAKEINTRESOURCE( IDI_PLUGINPANEL ), IMAGE_ICON, 0, 0,
-                                              LR_LOADMAP3DCOLORS | LR_LOADTRANSPARENT );
+                                              LR_LOADTRANSPARENT );
         data.pszModuleName = _Panel.getPluginFileName();
 
         // the dlgDlg should be the index of funcItem where the current function pointer is
