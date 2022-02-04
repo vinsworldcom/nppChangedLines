@@ -71,20 +71,18 @@ bool setCommand( size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc,
 //
 // Your plugin command functions
 //
-#define DefaultChangeColor 0x86c2ff
-#define DefaultSaveColor   0xb5ffb5
-#define DefaultChangeStyle SC_MARK_FULLRECT
-#define DefaultSaveStyle   SC_MARK_FULLRECT
-#define DefaultGotoIncSave 0
-#define DefaultMargin      4
-#define DefaultWidth       4
-#define DefaultArrowWidth  14
+#define DEFAULTCHANGECOLOR 0x86c2ff
+#define DEFAULTSAVECOLOR   0xb5ffb5
+#define DEFAULTCHANGESTYLE SC_MARK_FULLRECT
+#define DEFAULTSAVESTYLE   SC_MARK_FULLRECT
+#define DEFAULTCHANGEMARKER 10
+#define DEFAULTSAVEMARKER   11
+#define DEFAULTGOTOINCSAVE 0
+#define DEFAULTMARGIN      4
+#define DEFAULTWIDTH       4
+#define DEFAULTARROWWIDTH  14
 #define NUMDIGIT           64
 const int MAX_MARGINS    = 10;
-const int CHANGE_MARKER  = 10;
-const int SAVE_MARKER    = 11;
-const int CHANGE_MASK    = ( 1 << CHANGE_MARKER );
-const int SAVE_MASK      = ( 1 << SAVE_MARKER );
 
 #define N_ELEMS(x) (sizeof(x) / sizeof((x)[0]))
 const int MarkTypeArr[] =

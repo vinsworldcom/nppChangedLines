@@ -14,8 +14,8 @@ extern NppData   nppData;
 extern int  g_Width;
 extern long g_ChangeColor;
 extern long g_SaveColor;
-extern int  g_ChangeMarkStyle;
-extern int  g_SaveMarkStyle;
+extern int  g_ChangeStyle;
+extern int  g_SaveStyle;
 extern bool g_GotoIncSave;
 
 HBRUSH ghButtonColor;
@@ -49,9 +49,9 @@ void refreshSettings( HWND hWndDlg )
                  ( LPARAM )strHint );
 
     SendMessage( GetDlgItem( hWndDlg, IDC_CBO_MARKCHANGE ), CB_SETCURSEL,
-                 getMarkerType( g_ChangeMarkStyle ), 0 );
+                 getMarkerType( g_ChangeStyle ), 0 );
     SendMessage( GetDlgItem( hWndDlg, IDC_CBO_MARKSAVE ), CB_SETCURSEL,
-                 getMarkerType( g_SaveMarkStyle ), 0 );
+                 getMarkerType( g_SaveStyle ), 0 );
 }
 
 INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
@@ -193,7 +193,7 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
 
                 case IDC_BTN_COLORCHANGEDEF :
                 {
-                    g_ChangeColor = DefaultChangeColor;
+                    g_ChangeColor = DEFAULTCHANGECOLOR;
                     updateChangeColor();
                     InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORCHANGE ), NULL, TRUE );
                     return TRUE;
@@ -206,13 +206,13 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
 
                     if ( markType >= 0 && markType <= N_ELEMS( MarkTypeArr ) )
                     {
-                        g_ChangeMarkStyle = MarkTypeArr[markType];
+                        g_ChangeStyle = MarkTypeArr[markType];
 
                         if ( markType == Arrow )
                         {
-                            if ( g_Width < DefaultArrowWidth )
+                            if ( g_Width < DEFAULTARROWWIDTH )
                             {
-                                g_Width = DefaultArrowWidth;
+                                g_Width = DEFAULTARROWWIDTH;
                                 updateWidth();
                             }
                         }
@@ -246,7 +246,7 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
 
                 case IDC_BTN_COLORSAVEDEF :
                 {
-                    g_SaveColor = DefaultSaveColor;
+                    g_SaveColor = DEFAULTSAVECOLOR;
                     updateSaveColor();
                     InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORSAVE ), NULL, TRUE );
                     return TRUE;
@@ -259,13 +259,13 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
 
                     if ( markType >= 0 && markType <= N_ELEMS( MarkTypeArr ) )
                     {
-                        g_SaveMarkStyle = MarkTypeArr[markType];
+                        g_SaveStyle = MarkTypeArr[markType];
 
                         if ( markType == Arrow )
                         {
-                            if ( g_Width < DefaultArrowWidth )
+                            if ( g_Width < DEFAULTARROWWIDTH )
                             {
-                                g_Width = DefaultArrowWidth;
+                                g_Width = DEFAULTARROWWIDTH;
                                 updateWidth();
                             }
                         }

@@ -33,6 +33,8 @@ extern HWND hDialog;
 extern bool g_NppReady;
 extern bool g_GotoIncSave;
 extern bool g_useNppColors;
+extern int g_ChangeMask;
+extern int g_SaveMask;
 
 extern circular_buffer<tDocPos> prevPos;
 extern circular_buffer<tDocPos> nextPos;
@@ -155,10 +157,10 @@ void updateList()
 
     HWND hCurScintilla = getCurScintilla();
 
-    int mask = CHANGE_MASK;
+    int mask = g_ChangeMask;
 
     if ( g_GotoIncSave )
-        mask |= SAVE_MASK;
+        mask |= g_SaveMask;
 
     Sci_Position line = 0;
     int i    = 0;
