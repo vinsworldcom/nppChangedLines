@@ -30,7 +30,7 @@
 //-------------------------------------//
 // Here define your plugin name
 //
-const TCHAR NPP_PLUGIN_NAME[] = TEXT( "Changed &Lines" );
+const TCHAR NPP_PLUGIN_NAME[] = TEXT( "Changed Lines" );
 
 //-----------------------------------------------//
 //-- STEP 2. DEFINE YOUR PLUGIN COMMAND NUMBER --//
