@@ -79,7 +79,7 @@ bool setCommand( size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc,
 #define DEFAULTSAVEMARKER   11
 #define DEFAULTGOTOINCSAVE 0
 #define DEFAULTMARGIN      4
-#define DEFAULTWIDTH       4
+#define DEFAULTWIDTH       5
 #define DEFAULTARROWWIDTH  14
 #define NUMDIGIT           64
 const int MAX_MARGINS    = 10;
