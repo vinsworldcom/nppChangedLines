@@ -298,6 +298,8 @@ void DemoDlg::getAndGotoLine( int idx )
     if ( idx == -1 )
         idx = ListView_GetNextItem( GetDlgItem( _hSelf, IDC_LSV1 ), -1,
                                     LVIS_FOCUSED );
+    if ( idx < 0 )
+        return;
 
     memset( &LvItem, 0, sizeof( LvItem ) );
     LvItem.mask       = LVIF_TEXT;
