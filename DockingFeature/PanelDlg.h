@@ -23,11 +23,6 @@
 
 #include <commctrl.h>
 
-void updateListTimer();
-void SetNppColors();
-void SetSysColors();
-void ChangeColors();
-
 class DemoDlg : public DockingDlgInterface
 {
 public :
