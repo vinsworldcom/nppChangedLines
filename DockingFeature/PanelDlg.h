@@ -21,29 +21,38 @@
 #include "DockingDlgInterface.h"
 #include "resource.h"
 
-void updateListTimer();
-void SetNppColors();
-void SetSysColors();
-void ChangeColors();
+#include <commctrl.h>
 
 class DemoDlg : public DockingDlgInterface
 {
-    public :
-        DemoDlg() : DockingDlgInterface( IDD_PLUGINPANEL ) {};
+public :
+	DemoDlg() : DockingDlgInterface(IDD_PLUGINPANEL){};
 
-        virtual void display( bool toShow = true ) const
-        {
-            DockingDlgInterface::display( toShow );
-        };
+    virtual void display(bool toShow = true) const {
+        DockingDlgInterface::display(toShow);
+    };
 
-        void setParent( HWND parent2set )
-        {
-            _hParent = parent2set;
-        };
+	void setParent(HWND parent2set){
+		_hParent = parent2set;
+	};
 
-    protected :
-        virtual INT_PTR CALLBACK run_dlgProc( UINT message, WPARAM wParam,
-                                              LPARAM lParam );
+    void updateListTimer();
+
+protected :
+	virtual INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
+
+private :
+    void clearList();
+    void setListColumns( unsigned int uItem, std::wstring strLine, std::wstring strText );
+    std::wstring stringToWstring( const std::string &t_str );
+    void updateList();
+    void refreshDialog();
+    void SetNppColors();
+    void SetSysColors();
+    void ChangeColors();
+    void initDialog();
+    void getAndGotoLine( int idx );
+    void toolbarDropdown(LPNMTOOLBAR lpnmtb);
 };
 
 #endif //PANEL_DLG_H

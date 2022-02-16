@@ -35,14 +35,17 @@ std::wstringstream debugString;
 const TCHAR configFileName[]     = TEXT( "ChangedLines.ini" );
 const TCHAR sectionName[]        = TEXT( "Settings" );
 const TCHAR iniKeyEnabled[]      = TEXT( "Enabled" );
+const TCHAR iniKeyRaisePanel[]   = TEXT( "RaisePanelorToggle" );
 const TCHAR iniKeyGotoIncSave[]  = TEXT( "GotoIncludeSave" );
 const TCHAR iniKeyMargin[]       = TEXT( "Margin" );
 const TCHAR iniKeyWidth[]        = TEXT( "Width" );
 const TCHAR iniKeyColorChange[]  = TEXT( "ColorChange" );
 const TCHAR iniKeyColorSave[]    = TEXT( "ColorSave" );
-const TCHAR iniKeyMarkerChange[] = TEXT( "MarkerChange" );
-const TCHAR iniKeyMarkerSave[]   = TEXT( "MarkerSave" );
-const TCHAR iniUseNppColors[]    = TEXT( "UseNppColors" );
+const TCHAR iniKeyStyleChange[]  = TEXT( "StyleChange" );
+const TCHAR iniKeyStyleSave[]    = TEXT( "StyleSave" );
+const TCHAR iniKeyMarkIdChange[] = TEXT( "MarkIdChange" );
+const TCHAR iniKeyMarkIdSave[]   = TEXT( "MarkIdSave" );
+const TCHAR iniKeyUseNppColors[] = TEXT( "UseNppCStyle" );
 
 DemoDlg _Panel;
 toolbarIcons g_TBCL;
@@ -59,15 +62,20 @@ HINSTANCE g_hInst;
 
 TCHAR iniFilePath[MAX_PATH];
 bool g_NppReady        = false;
+bool g_RaisePanel      = false;
 bool g_enabled         = true;
-bool g_GotoIncSave     = DefaultGotoIncSave;
-int  g_Margin          = DefaultMargin;
-int  g_Width           = DefaultWidth;
-long g_ChangeColor     = DefaultChangeColor;
-long g_SaveColor       = DefaultSaveColor;
-int  g_ChangeMarkStyle = DefaultChangeStyle;
-int  g_SaveMarkStyle   = DefaultSaveStyle;
+bool g_GotoIncSave     = DEFAULTGOTOINCSAVE;
+int  g_Margin          = DEFAULTMARGIN;
+int  g_Width           = DEFAULTWIDTH;
+long g_ChangeColor     = DEFAULTCHANGECOLOR;
+long g_SaveColor       = DEFAULTSAVECOLOR;
+int  g_ChangeStyle     = DEFAULTCHANGESTYLE;
+int  g_SaveStyle       = DEFAULTSAVESTYLE;
+int  g_ChangeMarkId    = DEFAULTCHANGEMARKER;
+int  g_SaveMarkId      = DEFAULTSAVEMARKER;
 bool g_useNppColors    = false;
+int  g_ChangeMask      = ( 1 << g_ChangeMarkId );
+int  g_SaveMask        = ( 1 << g_SaveMarkId );
 
 #define TIMER_POS       2
 #define TIMER_POS_DELAY 2000
@@ -108,14 +116,22 @@ void pluginCleanUp()
     _itot_s( g_SaveColor, buf, NUMDIGIT, 10 );
     ::WritePrivateProfileString( sectionName, iniKeyColorSave, buf,
                                  iniFilePath );
-    _itot_s( g_ChangeMarkStyle, buf, NUMDIGIT, 10 );
-    ::WritePrivateProfileString( sectionName, iniKeyMarkerChange, buf,
+    _itot_s( g_ChangeStyle, buf, NUMDIGIT, 10 );
+    ::WritePrivateProfileString( sectionName, iniKeyStyleChange, buf,
                                  iniFilePath );
-    _itot_s( g_SaveMarkStyle, buf, NUMDIGIT, 10 );
-    ::WritePrivateProfileString( sectionName, iniKeyMarkerSave, buf,
+    _itot_s( g_SaveStyle, buf, NUMDIGIT, 10 );
+    ::WritePrivateProfileString( sectionName, iniKeyStyleSave, buf,
                                  iniFilePath );
-    ::WritePrivateProfileString( sectionName, iniUseNppColors,
+    _itot_s( g_ChangeMarkId, buf, NUMDIGIT, 10 );
+    ::WritePrivateProfileString( sectionName, iniKeyMarkIdChange, buf,
+                                 iniFilePath );
+    _itot_s( g_SaveMarkId, buf, NUMDIGIT, 10 );
+    ::WritePrivateProfileString( sectionName, iniKeyMarkIdSave, buf,
+                                 iniFilePath );
+    ::WritePrivateProfileString( sectionName, iniKeyUseNppColors,
                                  g_useNppColors ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
+    ::WritePrivateProfileString( sectionName, iniKeyRaisePanel,
+                                 g_RaisePanel ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
 
     if (g_TBCL.hToolbarBmp) {
         ::DeleteObject(g_TBCL.hToolbarBmp);
@@ -153,21 +169,30 @@ void commandMenuInit()
     g_GotoIncSave     = ::GetPrivateProfileInt( sectionName, iniKeyGotoIncSave, 0,
                         iniFilePath );
     g_Margin          = ::GetPrivateProfileInt( sectionName, iniKeyMargin,
-                        DefaultMargin, iniFilePath );
+                        DEFAULTMARGIN, iniFilePath );
     if ( g_Margin >= MAX_MARGINS )
-        g_Margin = DefaultMargin;
+        g_Margin = DEFAULTMARGIN;
     g_Width           = ::GetPrivateProfileInt( sectionName, iniKeyWidth,
-                        DefaultWidth, iniFilePath );
+                        DEFAULTWIDTH, iniFilePath );
     g_ChangeColor     = ::GetPrivateProfileInt( sectionName, iniKeyColorChange,
-                        DefaultChangeColor, iniFilePath );
+                        DEFAULTCHANGECOLOR, iniFilePath );
     g_SaveColor       = ::GetPrivateProfileInt( sectionName, iniKeyColorSave,
-                        DefaultSaveColor, iniFilePath );
-    g_ChangeMarkStyle = ::GetPrivateProfileInt( sectionName, iniKeyMarkerChange,
-                        DefaultChangeStyle, iniFilePath );
-    g_SaveMarkStyle   = ::GetPrivateProfileInt( sectionName, iniKeyMarkerSave,
-                        DefaultSaveStyle, iniFilePath );
-    g_useNppColors    = ::GetPrivateProfileInt( sectionName, iniUseNppColors,
+                        DEFAULTSAVECOLOR, iniFilePath );
+    g_ChangeStyle     = ::GetPrivateProfileInt( sectionName, iniKeyStyleChange,
+                        DEFAULTCHANGESTYLE, iniFilePath );
+    g_SaveStyle       = ::GetPrivateProfileInt( sectionName, iniKeyStyleSave,
+                        DEFAULTSAVESTYLE, iniFilePath );
+    g_ChangeMarkId    = ::GetPrivateProfileInt( sectionName, iniKeyMarkIdChange,
+                        DEFAULTCHANGEMARKER, iniFilePath );
+    g_SaveMarkId      = ::GetPrivateProfileInt( sectionName, iniKeyMarkIdSave,
+                        DEFAULTSAVEMARKER, iniFilePath );
+    g_useNppColors    = ::GetPrivateProfileInt( sectionName, iniKeyUseNppColors,
                                                 0, iniFilePath );
+    g_RaisePanel      = ::GetPrivateProfileInt( sectionName, iniKeyRaisePanel,
+                                                0, iniFilePath );
+
+    g_ChangeMask    = ( 1 << g_ChangeMarkId );
+    g_SaveMask      = ( 1 << g_SaveMarkId );
 
     //--------------------------------------------//
     //-- STEP 3. CUSTOMIZE YOUR PLUGIN COMMANDS --//
@@ -282,31 +307,31 @@ void updateWidth()
 
 void updateChangeColor()
 {
-    UpdatePlugin( SCI_MARKERSETFORE, CHANGE_MARKER, g_ChangeColor );
-    UpdatePlugin( SCI_MARKERSETBACK, CHANGE_MARKER, g_ChangeColor );
+    UpdatePlugin( SCI_MARKERSETFORE, g_ChangeMarkId, g_ChangeColor );
+    UpdatePlugin( SCI_MARKERSETBACK, g_ChangeMarkId, g_ChangeColor );
 }
 
 void updateSaveColor()
 {
-    UpdatePlugin( SCI_MARKERSETFORE, SAVE_MARKER, g_SaveColor );
-    UpdatePlugin( SCI_MARKERSETBACK, SAVE_MARKER, g_SaveColor );
+    UpdatePlugin( SCI_MARKERSETFORE, g_SaveMarkId, g_SaveColor );
+    UpdatePlugin( SCI_MARKERSETBACK, g_SaveMarkId, g_SaveColor );
 }
 
 void updateChangeStyle()
 {
-    UpdatePlugin( SCI_MARKERDEFINE, CHANGE_MARKER, g_ChangeMarkStyle );
+    UpdatePlugin( SCI_MARKERDEFINE, g_ChangeMarkId, g_ChangeStyle );
 
 }
 
 void updateSaveStyle()
 {
-    UpdatePlugin( SCI_MARKERDEFINE, SAVE_MARKER, g_SaveMarkStyle );
+    UpdatePlugin( SCI_MARKERDEFINE, g_SaveMarkId, g_SaveStyle );
 }
 
 void updatePanel()
 {
     if ( _Panel.isVisible() )
-        updateListTimer();
+        _Panel.updateListTimer();
 }
 
 void posTimerproc( HWND /*Arg1*/, UINT /*Arg2*/, UINT_PTR /*Arg3*/, DWORD /*Arg4*/)
@@ -362,7 +387,7 @@ void InitPlugin()
         int OriMask = ( int )::SendMessage( hCurScintilla, SCI_GETMARGINMASKN,
                                             g_Margin, 0 );
         int tmpMask = 0;
-        tmpMask = OriMask | CHANGE_MASK | SAVE_MASK;
+        tmpMask = OriMask | g_ChangeMask | g_SaveMask;
         SendMessage( hCurScintilla, SCI_SETMARGINMASKN, g_Margin, tmpMask );
         SendMessage( hCurScintilla, SCI_SETMARGINSENSITIVEN, g_Margin, true );
     }
@@ -384,8 +409,8 @@ void DestroyPlugin()
     {
         HWND hCurScintilla = ScintillaArr[i];
 
-        SendMessage( hCurScintilla, SCI_MARKERDELETEALL, CHANGE_MARKER, 0 );
-        SendMessage( hCurScintilla, SCI_MARKERDELETEALL, SAVE_MARKER, 0 );
+        SendMessage( hCurScintilla, SCI_MARKERDELETEALL, g_ChangeMarkId, 0 );
+        SendMessage( hCurScintilla, SCI_MARKERDELETEALL, g_SaveMarkId, 0 );
 
         SendMessage( hCurScintilla, SCI_SETMARGINTYPEN, g_Margin, 0 );
         SendMessage( hCurScintilla, SCI_SETMARGINWIDTHN, g_Margin, 0 );
@@ -406,8 +431,8 @@ void DestroyPlugin()
     for ( int i = 0; i < filecount; i++ )
     {
         SendMessage( nppData._nppHandle, NPPM_DOOPEN, 0, ( LPARAM )buffer[i] );
-        SendMessage( ScintillaArr[0], SCI_MARKERDELETEALL, CHANGE_MARKER, 0 );
-        SendMessage( ScintillaArr[0], SCI_MARKERDELETEALL, SAVE_MARKER, 0 );
+        SendMessage( ScintillaArr[0], SCI_MARKERDELETEALL, g_ChangeMarkId, 0 );
+        SendMessage( ScintillaArr[0], SCI_MARKERDELETEALL, g_SaveMarkId, 0 );
     }
 
     // Cleanup
@@ -422,8 +447,8 @@ void clearAllCF()
 {
     HWND hCurScintilla = getCurScintilla();
 
-    SendMessage( hCurScintilla, SCI_MARKERDELETEALL, CHANGE_MARKER, 0 );
-    SendMessage( hCurScintilla, SCI_MARKERDELETEALL, SAVE_MARKER, 0 );
+    SendMessage( hCurScintilla, SCI_MARKERDELETEALL, g_ChangeMarkId, 0 );
+    SendMessage( hCurScintilla, SCI_MARKERDELETEALL, g_SaveMarkId, 0 );
 }
 
 void doEnable()
@@ -471,9 +496,9 @@ void gotoNextChange()
     Sci_Position searchStart = ( Sci_Position )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
                                             pos, 0 );
 
-    int mask = CHANGE_MASK;
+    int mask = g_ChangeMask;
     if ( g_GotoIncSave )
-        mask |= SAVE_MASK;
+        mask |= g_SaveMask;
     while ( true )
     {
         line = findNextMark( hCurScintilla, searchStart + 1, mask );
@@ -503,9 +528,9 @@ void gotoPrevChange()
     int searchStart = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
                                             pos, 0 );
 
-    int mask = CHANGE_MASK;
+    int mask = g_ChangeMask;
     if ( g_GotoIncSave )
-        mask |= SAVE_MASK;
+        mask |= g_SaveMask;
     while ( true )
     {
         line = findPrevMark( hCurScintilla, searchStart - 1, mask );
@@ -534,13 +559,13 @@ int AddMarkFromLine( HWND hCurScintilla, Sci_Position line )
     int markHandle = -1;
     int state = ( int )::SendMessage( hCurScintilla, SCI_MARKERGET, line, 0 );
 
-    if ( state == SAVE_MASK )
-        SendMessage( hCurScintilla, SCI_MARKERDELETE, line, SAVE_MARKER );
+    if ( state == g_SaveMask )
+        SendMessage( hCurScintilla, SCI_MARKERDELETE, line, g_SaveMarkId );
     else if ( state != 0 )
         return markHandle;
 
     markHandle = ( int )::SendMessage( hCurScintilla, SCI_MARKERADD, line,
-                                       CHANGE_MARKER );
+                                       g_ChangeMarkId );
 
     return markHandle;
 }
@@ -566,10 +591,10 @@ bool RemoveMarkFromLine( HWND hCurScintilla, Sci_Position line )
     if ( state == 0 )
         return false;
 
-    if ( state == SAVE_MASK )
-        SendMessage( hCurScintilla, SCI_MARKERDELETE, line, SAVE_MARKER );
+    if ( state == g_SaveMask )
+        SendMessage( hCurScintilla, SCI_MARKERDELETE, line, g_SaveMarkId );
     else
-        SendMessage( hCurScintilla, SCI_MARKERDELETE, line, CHANGE_MARKER );
+        SendMessage( hCurScintilla, SCI_MARKERDELETE, line, g_ChangeMarkId );
 
     return true;
 }
@@ -580,8 +605,8 @@ void DelBookmark( HWND hCurScintilla, Sci_Position lineNo, Sci_Position lineAdd 
 
     if ( !canUndoFlag )
     {
-        SendMessage( hCurScintilla, SCI_MARKERDELETEALL, CHANGE_MARKER, 0 );
-        SendMessage( hCurScintilla, SCI_MARKERDELETEALL, SAVE_MARKER, 0 );
+        SendMessage( hCurScintilla, SCI_MARKERDELETEALL, g_ChangeMarkId, 0 );
+        SendMessage( hCurScintilla, SCI_MARKERDELETEALL, g_SaveMarkId, 0 );
         return;
     }
 
@@ -603,13 +628,13 @@ void convertChangeToSave()
 
     while ( true )
     {
-        Sci_Position line = findNextMark( hCurScintilla, pos, CHANGE_MASK );
+        Sci_Position line = findNextMark( hCurScintilla, pos, g_ChangeMask );
 
         if ( line == -1 )
             break;
 
-        SendMessage( hCurScintilla, SCI_MARKERDELETE, line, CHANGE_MARKER );
-        SendMessage( hCurScintilla, SCI_MARKERADD, line, SAVE_MARKER );
+        SendMessage( hCurScintilla, SCI_MARKERDELETE, line, g_ChangeMarkId );
+        SendMessage( hCurScintilla, SCI_MARKERADD, line, g_SaveMarkId );
         pos = line;
     }
 }
@@ -641,22 +666,22 @@ void DockableDlg()
         ::SendMessage( nppData._nppHandle, NPPM_DMMREGASDCKDLG, 0,
                        ( LPARAM )&data );
 
-        ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
-                       funcItem[DOCKABLE_INDEX]._cmdID, MF_CHECKED );
-        return;
+        _Panel.setClosed(true);
     }
 
-    if ( _Panel.isWindowVisible() )
+    if ( _Panel.isClosed() || g_RaisePanel )
     {
-        _Panel.display( false );
+        _Panel.display();
+        _Panel.setClosed(false);
         ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
-                       funcItem[DOCKABLE_INDEX]._cmdID, MF_UNCHECKED );
+                       funcItem[DOCKABLE_INDEX]._cmdID, MF_CHECKED );
+        _Panel.updateListTimer();
     }
     else
     {
-        _Panel.display();
+        _Panel.display( false );
+        _Panel.setClosed(true);
         ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
-                       funcItem[DOCKABLE_INDEX]._cmdID, MF_CHECKED );
-        updateListTimer();
+                       funcItem[DOCKABLE_INDEX]._cmdID, MF_UNCHECKED );
     }
 }
