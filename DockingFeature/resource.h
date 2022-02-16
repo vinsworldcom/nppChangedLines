@@ -48,19 +48,20 @@
 
 #define IDC_EDT_WIDTH          (IDD_SETTINGS + 2)
 #define IDC_CHK_NPPCOLOR       (IDD_SETTINGS + 3)
+#define IDC_CHK_PANELTOGGLE    (IDD_SETTINGS + 4)
 
-#define IDC_GRP1               (IDD_SETTINGS + 4)
-#define IDC_BTN_COLORCHANGE    (IDD_SETTINGS + 5)
-#define IDC_GRP_BTNCC          (IDD_SETTINGS + 6)
-#define IDC_BTN_COLORCHANGEDEF (IDD_SETTINGS + 7)
-#define IDC_CBO_MARKCHANGE     (IDD_SETTINGS + 8)
+#define IDC_GRP1               (IDD_SETTINGS + 5)
+#define IDC_BTN_COLORCHANGE    (IDD_SETTINGS + 6)
+#define IDC_GRP_BTNCC          (IDD_SETTINGS + 7)
+#define IDC_BTN_COLORCHANGEDEF (IDD_SETTINGS + 8)
+#define IDC_CBO_MARKCHANGE     (IDD_SETTINGS + 9)
 
-#define IDC_GRP2               (IDD_SETTINGS + 9)
-#define IDC_BTN_COLORSAVE      (IDD_SETTINGS + 10)
-#define IDC_GRP_BTNCS          (IDD_SETTINGS + 11)
-#define IDC_BTN_COLORSAVEDEF   (IDD_SETTINGS + 12)
-#define IDC_CBO_MARKSAVE       (IDD_SETTINGS + 13)
+#define IDC_GRP2               (IDD_SETTINGS + 10)
+#define IDC_BTN_COLORSAVE      (IDD_SETTINGS + 11)
+#define IDC_GRP_BTNCS          (IDD_SETTINGS + 12)
+#define IDC_BTN_COLORSAVEDEF   (IDD_SETTINGS + 13)
+#define IDC_CBO_MARKSAVE       (IDD_SETTINGS + 14)
 
-#define IDC_STC_VER            (IDD_SETTINGS + 14)
+#define IDC_STC_VER            (IDD_SETTINGS + 15)
 
 #endif // DOCKINGFEATURE_RESOURCE_H

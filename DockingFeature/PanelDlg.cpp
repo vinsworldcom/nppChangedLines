@@ -30,6 +30,7 @@
 extern bool g_NppReady;
 extern bool g_GotoIncSave;
 extern bool g_useNppColors;
+extern bool g_RaisePanel;
 extern int g_ChangeMask;
 extern int g_SaveMask;
 
@@ -188,6 +189,8 @@ void DemoDlg::refreshDialog()
 {
     SendMessage( GetDlgItem( _hSelf, IDC_CHK_NPPCOLOR ), BM_SETCHECK,
                  ( WPARAM )( g_useNppColors ? 1 : 0 ), 0 );
+    SendMessage( GetDlgItem( _hSelf, IDC_CHK_PANELTOGGLE ), BM_SETCHECK,
+                 ( WPARAM )( g_RaisePanel ? 1 : 0 ), 0 );
 }
 
 void DemoDlg::SetNppColors()
@@ -395,6 +398,18 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
 
                     ChangeColors();
                     refreshDialog();
+                    return TRUE;
+                }
+
+                case IDC_CHK_PANELTOGGLE:
+                {
+                    int check = ( int )::SendMessage( GetDlgItem( _hSelf, IDC_CHK_PANELTOGGLE ),
+                                                      BM_GETCHECK, 0, 0 );
+
+                    if ( check & BST_CHECKED )
+                        g_RaisePanel = true;
+                    else
+                        g_RaisePanel = false;
                     return TRUE;
                 }
 

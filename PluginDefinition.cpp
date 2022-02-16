@@ -35,6 +35,7 @@ std::wstringstream debugString;
 const TCHAR configFileName[]     = TEXT( "ChangedLines.ini" );
 const TCHAR sectionName[]        = TEXT( "Settings" );
 const TCHAR iniKeyEnabled[]      = TEXT( "Enabled" );
+const TCHAR iniKeyRaisePanel[]   = TEXT( "RaisePanelorToggle" );
 const TCHAR iniKeyGotoIncSave[]  = TEXT( "GotoIncludeSave" );
 const TCHAR iniKeyMargin[]       = TEXT( "Margin" );
 const TCHAR iniKeyWidth[]        = TEXT( "Width" );
@@ -44,7 +45,7 @@ const TCHAR iniKeyStyleChange[]  = TEXT( "StyleChange" );
 const TCHAR iniKeyStyleSave[]    = TEXT( "StyleSave" );
 const TCHAR iniKeyMarkIdChange[] = TEXT( "MarkIdChange" );
 const TCHAR iniKeyMarkIdSave[]   = TEXT( "MarkIdSave" );
-const TCHAR iniUseNppColors[]    = TEXT( "UseNppCStyle" );
+const TCHAR iniKeyUseNppColors[] = TEXT( "UseNppCStyle" );
 
 DemoDlg _Panel;
 toolbarIcons g_TBCL;
@@ -61,6 +62,7 @@ HINSTANCE g_hInst;
 
 TCHAR iniFilePath[MAX_PATH];
 bool g_NppReady        = false;
+bool g_RaisePanel      = false;
 bool g_enabled         = true;
 bool g_GotoIncSave     = DEFAULTGOTOINCSAVE;
 int  g_Margin          = DEFAULTMARGIN;
@@ -126,8 +128,10 @@ void pluginCleanUp()
     _itot_s( g_SaveMarkId, buf, NUMDIGIT, 10 );
     ::WritePrivateProfileString( sectionName, iniKeyMarkIdSave, buf,
                                  iniFilePath );
-    ::WritePrivateProfileString( sectionName, iniUseNppColors,
+    ::WritePrivateProfileString( sectionName, iniKeyUseNppColors,
                                  g_useNppColors ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
+    ::WritePrivateProfileString( sectionName, iniKeyRaisePanel,
+                                 g_RaisePanel ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
 
     if (g_TBCL.hToolbarBmp) {
         ::DeleteObject(g_TBCL.hToolbarBmp);
@@ -182,7 +186,9 @@ void commandMenuInit()
                         DEFAULTCHANGEMARKER, iniFilePath );
     g_SaveMarkId      = ::GetPrivateProfileInt( sectionName, iniKeyMarkIdSave,
                         DEFAULTSAVEMARKER, iniFilePath );
-    g_useNppColors    = ::GetPrivateProfileInt( sectionName, iniUseNppColors,
+    g_useNppColors    = ::GetPrivateProfileInt( sectionName, iniKeyUseNppColors,
+                                                0, iniFilePath );
+    g_RaisePanel      = ::GetPrivateProfileInt( sectionName, iniKeyRaisePanel,
                                                 0, iniFilePath );
 
     g_ChangeMask    = ( 1 << g_ChangeMarkId );
@@ -663,7 +669,7 @@ void DockableDlg()
         _Panel.setClosed(true);
     }
 
-    if ( _Panel.isClosed() )
+    if ( _Panel.isClosed() || g_RaisePanel )
     {
         _Panel.display();
         _Panel.setClosed(false);
