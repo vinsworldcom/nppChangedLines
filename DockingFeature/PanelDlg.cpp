@@ -27,9 +27,6 @@
 #include <vector>
 #include <windowsx.h>
 
-extern NppData nppData;
-extern HWND hDialog;
-
 extern bool g_NppReady;
 extern bool g_GotoIncSave;
 extern bool g_useNppColors;
@@ -102,12 +99,12 @@ void imageToolbar( HINSTANCE hInst, HWND hWndToolbar, UINT ToolbarID,
     SendMessage( hWndToolbar, TB_SETIMAGELIST, 0, ( LPARAM )himlToolBar1 );
 }
 
-void clearList()
+void DemoDlg::clearList()
 {
-    SendMessage( GetDlgItem( hDialog, IDC_LSV1 ), LVM_DELETEALLITEMS, 0, 0 );
+    SendMessage( GetDlgItem( _hSelf, IDC_LSV1 ), LVM_DELETEALLITEMS, 0, 0 );
 }
 
-void setListColumns( unsigned int uItem, std::wstring strLine,
+void DemoDlg::setListColumns( unsigned int uItem, std::wstring strLine,
                      std::wstring strText )
 {
     // https://www.codeproject.com/Articles/2890/Using-ListView-control-under-Win32-API
@@ -118,21 +115,21 @@ void setListColumns( unsigned int uItem, std::wstring strLine,
 
     // LvItem.iSubItem   = COL_CHK;      // Put in first coluom
     // LvItem.pszText    = TEXT( "" );
-    // SendMessage( GetDlgItem( hDialog, IDC_LSV1 ), LVM_INSERTITEM, 0, ( LPARAM )&LvItem );
+    // SendMessage( GetDlgItem( _hSelf, IDC_LSV1 ), LVM_INSERTITEM, 0, ( LPARAM )&LvItem );
 
     LvItem.iSubItem   = COL_LINE;        // Put in second coluom
     LvItem.pszText    = const_cast<LPWSTR>( strLine.c_str() );
-    SendMessage( GetDlgItem( hDialog, IDC_LSV1 ), LVM_INSERTITEM, 0,
+    SendMessage( GetDlgItem( _hSelf, IDC_LSV1 ), LVM_INSERTITEM, 0,
                  ( LPARAM )&LvItem );
 
     LvItem.iSubItem   = COL_TEXT;        // Put in third coluom
     LvItem.pszText    = const_cast<LPWSTR>( strText.c_str() );
-    SendMessage( GetDlgItem( hDialog, IDC_LSV1 ), LVM_SETITEM, 0,
+    SendMessage( GetDlgItem( _hSelf, IDC_LSV1 ), LVM_SETITEM, 0,
                  ( LPARAM )&LvItem );
 }
 
 
-std::wstring stringToWstring( const std::string &t_str )
+std::wstring DemoDlg::stringToWstring( const std::string &t_str )
 {
     //setup converter
     typedef std::codecvt_utf8<wchar_t> convert_type;
@@ -142,13 +139,13 @@ std::wstring stringToWstring( const std::string &t_str )
     return converter.from_bytes( t_str );
 }
 
-void updateListTimer()
+void DemoDlg::updateListTimer()
 {
-    KillTimer( hDialog, TIMER_CHANGE );
-    SetTimer( hDialog, TIMER_CHANGE, TIMER_CHANGE_DELAY, NULL );
+    KillTimer( _hSelf, TIMER_CHANGE );
+    SetTimer( _hSelf, TIMER_CHANGE, TIMER_CHANGE_DELAY, NULL );
 }
 
-void updateList()
+void DemoDlg::updateList()
 {
     if ( ! g_NppReady )
         return;
@@ -187,13 +184,13 @@ void updateList()
     }
 }
 
-void refreshDialog()
+void DemoDlg::refreshDialog()
 {
-    SendMessage( GetDlgItem( hDialog, IDC_CHK_NPPCOLOR ), BM_SETCHECK,
+    SendMessage( GetDlgItem( _hSelf, IDC_CHK_NPPCOLOR ), BM_SETCHECK,
                  ( WPARAM )( g_useNppColors ? 1 : 0 ), 0 );
 }
 
-void SetNppColors()
+void DemoDlg::SetNppColors()
 {
     colorBg = ( COLORREF )::SendMessage( getCurScintilla(), SCI_STYLEGETBACK, 0,
                                          0 );
@@ -201,15 +198,15 @@ void SetNppColors()
                                          0 );
 }
 
-void SetSysColors()
+void DemoDlg::SetSysColors()
 {
     colorBg = GetSysColor( COLOR_WINDOW );
     colorFg = GetSysColor( COLOR_WINDOWTEXT );
 }
 
-void ChangeColors()
+void DemoDlg::ChangeColors()
 {
-    HWND hList = GetDlgItem( hDialog, IDC_LSV1 );
+    HWND hList = GetDlgItem( _hSelf, IDC_LSV1 );
 
     ::SendMessage( hList, WM_SETREDRAW, FALSE, 0 );
 
@@ -222,7 +219,7 @@ void ChangeColors()
                     RDW_ERASE | RDW_INVALIDATE | RDW_ALLCHILDREN );
 }
 
-void initDialog()
+void DemoDlg::initDialog()
 {
     INITCOMMONCONTROLSEX ic;
 
@@ -236,7 +233,7 @@ void initDialog()
     // Create pager.  The parent window is the parent.
     hWndPager1 = CreateWindow( WC_PAGESCROLLER, NULL,
                                WS_VISIBLE | WS_CHILD | PGS_HORZ,
-                               0, 0, 200, 32, hDialog, ( HMENU ) IDB_PAGER1,
+                               0, 0, 200, 32, _hSelf, ( HMENU ) IDB_PAGER1,
                                GetModuleHandle( TEXT( "ChangedLines.dll" ) ), NULL );
     // Create Toolbar.  The parent window is the Pager.
     hWndToolbar1 = CreateWindowEx( 0, TOOLBARCLASSNAME, NULL, WS_TOOLBARSTYLE,
@@ -264,7 +261,7 @@ void initDialog()
 
     refreshDialog();
 
-    HWND hList = GetDlgItem( hDialog, IDC_LSV1 );
+    HWND hList = GetDlgItem( _hSelf, IDC_LSV1 );
 
     // https://www.codeproject.com/Articles/2890/Using-ListView-control-under-Win32-API
     SendMessage( hList, LVM_SETEXTENDEDLISTVIEWSTYLE, 0,
@@ -294,12 +291,12 @@ void initDialog()
     clearList();
 }
 
-void getAndGotoLine( int idx )
+void DemoDlg::getAndGotoLine( int idx )
 {
     TCHAR lineno[MAX_PATH] = {0};
 
     if ( idx == -1 )
-        idx = ListView_GetNextItem( GetDlgItem( hDialog, IDC_LSV1 ), -1,
+        idx = ListView_GetNextItem( GetDlgItem( _hSelf, IDC_LSV1 ), -1,
                                     LVIS_FOCUSED );
 
     memset( &LvItem, 0, sizeof( LvItem ) );
@@ -309,14 +306,14 @@ void getAndGotoLine( int idx )
     LvItem.cchTextMax = MAX_PATH;
     LvItem.iItem      = idx;
 
-    SendMessage( GetDlgItem( hDialog, IDC_LSV1 ), LVM_GETITEMTEXT, idx,
+    SendMessage( GetDlgItem( _hSelf, IDC_LSV1 ), LVM_GETITEMTEXT, idx,
                  ( LPARAM )&LvItem );
     gotoLine( std::stoi( lineno ) - 1 );
-    PostMessage( nppData._nppHandle, WM_COMMAND, SCEN_SETFOCUS << 16,
+    PostMessage( _hParent, WM_COMMAND, SCEN_SETFOCUS << 16,
                  reinterpret_cast<LPARAM>( getCurScintilla() ) );
 }
 
-void toolbarDropdown(LPNMTOOLBAR lpnmtb)
+void DemoDlg::toolbarDropdown(LPNMTOOLBAR lpnmtb)
 {
     size_t i = 0;
     size_t elements = 0;
@@ -343,7 +340,7 @@ void toolbarDropdown(LPNMTOOLBAR lpnmtb)
     }
 
     ::GetCursorPos(&pt);
-    INT cmd = ::TrackPopupMenu(hMenu, TPM_RETURNCMD, pt.x, pt.y, 0, hDialog, NULL);
+    INT cmd = ::TrackPopupMenu(hMenu, TPM_RETURNCMD, pt.x, pt.y, 0, _hSelf, NULL);
     ::DestroyMenu(hMenu);
 
     if ( cmd )
@@ -357,7 +354,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
     {
         case WM_TIMER:
         {
-            KillTimer( hDialog, TIMER_CHANGE );
+            KillTimer( _hSelf, TIMER_CHANGE );
             updateList();
             return FALSE;
         }
@@ -380,7 +377,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
 
                 case IDC_CHK_NPPCOLOR:
                 {
-                    int check = ( int )::SendMessage( GetDlgItem( hDialog, IDC_CHK_NPPCOLOR ),
+                    int check = ( int )::SendMessage( GetDlgItem( _hSelf, IDC_CHK_NPPCOLOR ),
                                                       BM_GETCHECK, 0, 0 );
 
                     if ( check & BST_CHECKED )
@@ -408,8 +405,8 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                 case IDC_BTN_SEARCH:
                 {
                     TCHAR pathName[MAX_PATH] = {0};
-                    ::SendMessage( nppData._nppHandle, NPPM_GETCURRENTDIRECTORY, MAX_PATH, ( LPARAM )pathName );
-                    ::SendMessage( nppData._nppHandle, NPPM_LAUNCHFINDINFILESDLG, (WPARAM)pathName, NULL );
+                    ::SendMessage( _hParent, NPPM_GETCURRENTDIRECTORY, MAX_PATH, ( LPARAM )pathName );
+                    ::SendMessage( _hParent, NPPM_LAUNCHFINDINFILESDLG, (WPARAM)pathName, NULL );
                     return TRUE;
                 }
 
@@ -424,7 +421,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                 {
                     HWND hWndCtrl = GetFocus();
 
-                    if ( hWndCtrl == GetDlgItem( hDialog, IDC_LSV1 ) )
+                    if ( hWndCtrl == GetDlgItem( _hSelf, IDC_LSV1 ) )
                         getAndGotoLine( -1 );
 
                     return TRUE;
@@ -448,7 +445,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
             {
                 case NM_DBLCLK:
                 {
-                    if ( nmhdr->hwndFrom == GetDlgItem( hDialog, IDC_LSV1 ) )
+                    if ( nmhdr->hwndFrom == GetDlgItem( _hSelf, IDC_LSV1 ) )
                     {
                         POINT         pt    = {0};
                         LVHITTESTINFO ht    = {0};
@@ -458,9 +455,9 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                         pt.y = GET_Y_LPARAM( dwpos );
 
                         ht.pt = pt;
-                        ::ScreenToClient( GetDlgItem( hDialog, IDC_LSV1 ), &ht.pt );
+                        ::ScreenToClient( GetDlgItem( _hSelf, IDC_LSV1 ), &ht.pt );
 
-                        ListView_SubItemHitTest( GetDlgItem( hDialog, IDC_LSV1 ), &ht );
+                        ListView_SubItemHitTest( GetDlgItem( _hSelf, IDC_LSV1 ), &ht );
 
                         if ( ht.iItem == -1 )
                             break;
@@ -487,7 +484,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                 {
                     LPNMLVKEYDOWN pnkd = ( LPNMLVKEYDOWN ) lParam;
 
-                    if ( ( nmhdr->hwndFrom == GetDlgItem( hDialog, IDC_LSV1 ) ) &&
+                    if ( ( nmhdr->hwndFrom == GetDlgItem( _hSelf, IDC_LSV1 ) ) &&
                             ( ( pnkd->wVKey == VK_RETURN )
                               || ( pnkd->wVKey == VK_SPACE )
                             ) )
@@ -512,11 +509,11 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
             RECT rc = {0};
             getClientRect( rc );
 
-            ::SetWindowPos( GetDlgItem( hDialog, IDC_LSV1 ), NULL,
+            ::SetWindowPos( GetDlgItem( _hSelf, IDC_LSV1 ), NULL,
                             rc.left + 15, rc.top + 100, rc.right - 25, rc.bottom - 110,
                             SWP_NOZORDER | SWP_SHOWWINDOW );
 
-            SendMessage( GetDlgItem( hDialog, IDC_LSV1 ), LVM_SETCOLUMNWIDTH, COL_TEXT,
+            SendMessage( GetDlgItem( _hSelf, IDC_LSV1 ), LVM_SETCOLUMNWIDTH, COL_TEXT,
                          LVSCW_AUTOSIZE_USEHEADER );
 
             // redraw();
@@ -525,7 +522,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
 
         case WM_PAINT:
         {
-            ::RedrawWindow( hDialog, NULL, NULL, TRUE );
+            ::RedrawWindow( _hSelf, NULL, NULL, TRUE );
             return FALSE;
         }
 

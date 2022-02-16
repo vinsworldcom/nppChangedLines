@@ -325,7 +325,7 @@ void updateSaveStyle()
 void updatePanel()
 {
     if ( _Panel.isVisible() )
-        updateListTimer();
+        _Panel.updateListTimer();
 }
 
 void posTimerproc( HWND /*Arg1*/, UINT /*Arg2*/, UINT_PTR /*Arg3*/, DWORD /*Arg4*/)
@@ -660,22 +660,22 @@ void DockableDlg()
         ::SendMessage( nppData._nppHandle, NPPM_DMMREGASDCKDLG, 0,
                        ( LPARAM )&data );
 
-        ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
-                       funcItem[DOCKABLE_INDEX]._cmdID, MF_CHECKED );
-        return;
+        _Panel.setClosed(true);
     }
 
-    if ( _Panel.isWindowVisible() )
+    if ( _Panel.isClosed() )
     {
-        _Panel.display( false );
+        _Panel.display();
+        _Panel.setClosed(false);
         ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
-                       funcItem[DOCKABLE_INDEX]._cmdID, MF_UNCHECKED );
+                       funcItem[DOCKABLE_INDEX]._cmdID, MF_CHECKED );
+        _Panel.updateListTimer();
     }
     else
     {
-        _Panel.display();
+        _Panel.display( false );
+        _Panel.setClosed(true);
         ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
-                       funcItem[DOCKABLE_INDEX]._cmdID, MF_CHECKED );
-        updateListTimer();
+                       funcItem[DOCKABLE_INDEX]._cmdID, MF_UNCHECKED );
     }
 }
