@@ -530,7 +530,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
             getClientRect( rc );
 
             ::SetWindowPos( GetDlgItem( _hSelf, IDC_LSV1 ), NULL,
-                            rc.left + 15, rc.top + 100, rc.right - 25, rc.bottom - 110,
+                            rc.left + 5, rc.top + 100, rc.right - 10, rc.bottom - 105,
                             SWP_NOZORDER | SWP_SHOWWINDOW );
 
             SendMessage( GetDlgItem( _hSelf, IDC_LSV1 ), LVM_SETCOLUMNWIDTH, COL_TEXT,
