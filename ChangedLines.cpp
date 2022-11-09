@@ -166,51 +166,10 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
                     if ( notifyCode->text == NULL && 1024 == notifyCode->length )
                         break;
                 }
-
-                HWND hCurScintilla = getCurScintilla();
-                isAutoModify = ( SendMessage( hCurScintilla, SCI_GETUNDOCOLLECTION, 0, 0 ) == 0 );
-
-                if ( !isAutoModify )
-                {
-                    if ( ModifyType & SC_PERFORMED_UNDO )
-                    {
-                        Sci_Position line = -1;
-
-                        if ( notifyCode->linesAdded == 0 && preModifyPos != pos && preModifyPos != -1 )
-                        {
-                            line = ( Sci_Position )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, preModifyPos, 0 );
-                            DelBookmark( hCurScintilla, line, preModifyLineAdd );
-                        }
-         
-                        if ( notifyCode->linesAdded != 0 || ( ModifyType & SC_LASTSTEPINUNDOREDO ) )
-                        {
-                            line = ( Sci_Position )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, pos, 0 );
-                            DelBookmark( hCurScintilla, line, notifyCode->linesAdded );
-                            preModifyPos = -1;
-                        }
-                        else
-                        {
-                            preModifyPos = pos;
-                            preModifyLineAdd = notifyCode->linesAdded;
-                        }
-                    }
-                    else
-                    {
-                        // SC_PERFORMED_REDO
-                        int line = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, notifyCode->position, 0 );
-                        SetBookmark( hCurScintilla, line, notifyCode->linesAdded );
-                    }
-                }
             }
 
             updatePosition();
             updatePanel();
-        }
-        break;
-
-        case SCN_SAVEPOINTREACHED:
-        {
-            convertChangeToSave();
         }
         break;
 
