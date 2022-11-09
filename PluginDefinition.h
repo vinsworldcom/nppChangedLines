@@ -76,7 +76,7 @@ bool setCommand( size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc,
 #define DEFAULTWIDTH       9
 #define DEFAULTCOLOR_REVERTED_TO_ORIGIN   0x40a0bf
 #define DEFAULTCOLOR_SAVED                0x00a000
-#define DEFAULTCOLOR_MODIFIED             0xff8000
+#define DEFAULTCOLOR_MODIFIED             0x0080ff
 #define DEFAULTCOLOR_REVERTED_TO_MODIFIED 0xcad788
 #define NUMDIGIT           64
 
@@ -84,6 +84,7 @@ bool setCommand( size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc,
 
 HWND getCurScintilla();
 Sci_Position findNextMark( HWND, Sci_Position, int );
+Sci_Position findPrevMark( HWND, Sci_Position, int );
 void updateWidth();
 void updateChangeColor();
 void updateSaveColor();

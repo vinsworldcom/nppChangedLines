@@ -256,13 +256,13 @@ HWND getCurScintilla()
 
 Sci_Position findNextMark( HWND hCurScintilla, Sci_Position searchStart, int mask )
 {
-    return ( ( int )::SendMessage( hCurScintilla, SCI_MARKERNEXT, searchStart,
-                                   mask ) );
+    return ( ( Sci_Position )::SendMessage( hCurScintilla, SCI_MARKERNEXT, 
+                                   searchStart, mask ) );
 }
 
-int findPrevMark( HWND hCurScintilla, int searchStart, int mask )
+Sci_Position findPrevMark( HWND hCurScintilla, Sci_Position searchStart, int mask )
 {
-    return ( ( int )::SendMessage( hCurScintilla, SCI_MARKERPREVIOUS,
+    return ( ( Sci_Position )::SendMessage( hCurScintilla, SCI_MARKERPREVIOUS,
                                    searchStart, mask ) );
 }
 
@@ -383,7 +383,7 @@ void clearAllCF()
 {
     HWND hCurScintilla = getCurScintilla();
 
-    int chFlags = SendMessage ( hCurScintilla, SCI_GETCHANGEHISTORY, 0, 0 );
+    int chFlags = ( int )::SendMessage ( hCurScintilla, SCI_GETCHANGEHISTORY, 0, 0 );
 
     SendMessage( hCurScintilla, SCI_EMPTYUNDOBUFFER, 0, 0 );
     SendMessage( hCurScintilla, SCI_SETCHANGEHISTORY, SC_CHANGE_HISTORY_DISABLED, 0 );
@@ -431,14 +431,18 @@ void gotoNextChange()
 {
     HWND hCurScintilla = getCurScintilla();
 
-    Sci_Position line = 0;
+    Sci_Position line = -1;
     Sci_Position pos = ( Sci_Position )::SendMessage( hCurScintilla, SCI_GETCURRENTPOS, 0, 0 );
     Sci_Position searchStart = ( Sci_Position )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
                                             pos, 0 );
 
     int mask = g_ChangeMask;
     if ( g_GotoIncSave )
-        mask |= g_SaveMask;
+        mask |= g_SaveMask | g_RevModMask | g_RevOriMask;
+
+/*
+    `markerNext` doesn't work on ChangeHistory:
+       https://sourceforge.net/p/scintilla/bugs/2353/
     while ( true )
     {
         line = findNextMark( hCurScintilla, searchStart + 1, mask );
@@ -457,20 +461,63 @@ void gotoNextChange()
 
     if ( line != -1 )
         gotoLine( line );
+    `markerNext` doesn't work on ChangeHistory:
+*/
+
+    Sci_Position textLength = ( Sci_Position)::SendMessage( hCurScintilla, SCI_GETTEXTLENGTH, 0, 0 );
+    Sci_Position lastLine = ( Sci_Position)::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, textLength, 0 );
+    Sci_Position consec = searchStart;
+
+    for ( Sci_Position i = searchStart+1; i < lastLine+1; i++ )
+    {
+        int mark = ( int )::SendMessage( hCurScintilla, SCI_MARKERGET, i, 0 );
+        if ( mark & mask )
+        {
+            if ( i == consec + 1 )
+                consec += 1;
+            else
+            {
+                line = i;
+                break;
+            }
+        }
+    }
+
+    if ( line == -1 )
+    {
+        for ( Sci_Position i = 0; i < searchStart; i++ )
+        {
+            int mark = ( int )::SendMessage( hCurScintilla, SCI_MARKERGET, i, 0 );
+            if ( mark & mask )
+            {
+                if ( i == consec + 1 )
+                    consec += 1;
+                else
+                {
+                    line = i;
+                    break;
+                }
+            }
+        }
+    }
+
+    if ( line != -1 )
+        gotoLine(line);
 }
 
 void gotoPrevChange()
 {
     HWND hCurScintilla = getCurScintilla();
 
-    int line = 0;
-    int pos = ( int )::SendMessage( hCurScintilla, SCI_GETCURRENTPOS, 0, 0 );
-    int searchStart = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
+    Sci_Position line = 0;
+    Sci_Position pos = ( Sci_Position )::SendMessage( hCurScintilla, SCI_GETCURRENTPOS, 0, 0 );
+    Sci_Position searchStart = ( Sci_Position )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
                                             pos, 0 );
 
     int mask = g_ChangeMask;
     if ( g_GotoIncSave )
-        mask |= g_SaveMask;
+        mask |= g_SaveMask | g_RevModMask | g_RevOriMask;
+
     while ( true )
     {
         line = findPrevMark( hCurScintilla, searchStart - 1, mask );

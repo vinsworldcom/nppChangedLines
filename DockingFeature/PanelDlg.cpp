@@ -163,27 +163,28 @@ void DemoDlg::updateList()
         mask |= g_SaveMask | g_RevModMask | g_RevOriMask;
 
     Sci_Position line = 0;
+    Sci_Position textLength = ( Sci_Position)::SendMessage( hCurScintilla, SCI_GETTEXTLENGTH, 0, 0 );
+    Sci_Position lastLine = ( Sci_Position)::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, textLength, 0 );
     int i = 0;
 
-    while ( true )
+    while ( line < lastLine+1 )
     {
-        line = findNextMark( hCurScintilla, line, mask );
-
-        if ( line == -1 )
-            break;
-
+        int mark = ( int )::SendMessage( hCurScintilla, SCI_MARKERGET, line, 0 );
+        if ( mark & mask )
+        {
 // TODO:2020-01-19:MVINCENT:  ListView, SCI_GETLINE, https://stackoverflow.com/questions/18536125/dynamic-memory-allocation-to-char-array
-        Sci_Position lineLen = ( Sci_Position )::SendMessage( getCurScintilla(), SCI_GETLINE, line,
-                                            ( LPARAM ) 0 );
-        char *array = new char[ lineLen + 1 ];
-        SendMessage( getCurScintilla(), SCI_GETLINE, line, ( LPARAM ) array );
-        array[lineLen] = '\0';
-        std::wstring buffer = stringToWstring( array );
-        setListColumns( i, std::to_wstring( line + 1 ), buffer );
-        delete[] array;
+            Sci_Position lineLen = ( Sci_Position )::SendMessage( getCurScintilla(), SCI_GETLINE, line,
+                                                ( LPARAM ) 0 );
+            char *array = new char[ lineLen + 1 ];
+            SendMessage( getCurScintilla(), SCI_GETLINE, line, ( LPARAM ) array );
+            array[lineLen] = '\0';
+            std::wstring buffer = stringToWstring( array );
+            setListColumns( i, std::to_wstring( line + 1 ), buffer );
+            delete[] array;
 
+            i++;
+        }
         line++;
-        i++;
     }
 }
 
