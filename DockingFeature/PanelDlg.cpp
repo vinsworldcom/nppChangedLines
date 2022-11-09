@@ -33,6 +33,8 @@ extern bool g_useNppColors;
 extern bool g_RaisePanel;
 extern int g_ChangeMask;
 extern int g_SaveMask;
+extern int g_RevModMask;
+extern int g_RevOriMask;
 
 extern circular_buffer<tDocPos> prevPos;
 extern circular_buffer<tDocPos> nextPos;
@@ -158,10 +160,10 @@ void DemoDlg::updateList()
     int mask = g_ChangeMask;
 
     if ( g_GotoIncSave )
-        mask |= g_SaveMask;
+        mask |= g_SaveMask | g_RevModMask | g_RevOriMask;
 
     Sci_Position line = 0;
-    int i    = 0;
+    int i = 0;
 
     while ( true )
     {
