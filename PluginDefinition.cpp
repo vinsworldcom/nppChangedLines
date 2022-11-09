@@ -383,12 +383,15 @@ void clearAllCF()
 {
     HWND hCurScintilla = getCurScintilla();
 
-    int chFlags = ( int )::SendMessage ( hCurScintilla, SCI_GETCHANGEHISTORY, 0, 0 );
-
+    int chFlags = ( int )::SendMessage( hCurScintilla, SCI_GETCHANGEHISTORY, 0, 0 );
+    Sci_Position pos = ( Sci_Position )::SendMessage( hCurScintilla, SCI_GETCURRENTPOS, 0, 0 );
+    
     SendMessage( hCurScintilla, SCI_EMPTYUNDOBUFFER, 0, 0 );
     SendMessage( hCurScintilla, SCI_SETCHANGEHISTORY, SC_CHANGE_HISTORY_DISABLED, 0 );
 
     SendMessage( hCurScintilla, SCI_SETCHANGEHISTORY, chFlags, 0 );
+
+    SendMessage( hCurScintilla, SCI_GOTOPOS, pos, 0 );
 }
 
 void doEnable()

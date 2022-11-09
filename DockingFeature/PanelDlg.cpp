@@ -419,6 +419,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                 case IDC_BTN_CLEARALL:
                 {
                     clearAllCF();
+                    updatePanel();
                     return TRUE;
                 }
 
