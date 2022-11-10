@@ -74,10 +74,10 @@ bool setCommand( size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc,
 #define DEFAULTGOTOINCSAVE 1
 #define DEFAULTMARGIN      2
 #define DEFAULTWIDTH       9
-#define DEFAULTCOLOR_REVERTED_TO_ORIGIN   0x40a0bf
+#define DEFAULTCOLOR_REVERTED_TO_ORIGIN   0xbfa040
 #define DEFAULTCOLOR_SAVED                0x00a000
 #define DEFAULTCOLOR_MODIFIED             0x0080ff
-#define DEFAULTCOLOR_REVERTED_TO_MODIFIED 0xcad788
+#define DEFAULTCOLOR_REVERTED_TO_MODIFIED 0x00c0a0
 #define NUMDIGIT           64
 
 #define N_ELEMS(x) (sizeof(x) / sizeof((x)[0]))
