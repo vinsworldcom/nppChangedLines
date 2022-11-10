@@ -125,6 +125,56 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
         }
         break;
 
+        case SCN_MARGINRIGHTCLICK:
+        {
+            if ( !g_enabled )
+                break;
+
+            if ( notifyCode->margin != g_Margin )
+                break;
+
+            HMENU pm = CreatePopupMenu();
+            AppendMenu( pm, MF_STRING,    100000, TEXT("Previous Change") );
+            AppendMenu( pm, MF_STRING,    100001, TEXT("Previous Change (only)") );
+            AppendMenu( pm, MF_STRING,    100002, TEXT("Previous Save (only)") );
+            AppendMenu( pm, MF_SEPARATOR, 0,      TEXT("") );
+            AppendMenu( pm, MF_STRING,    100003, TEXT("Next Change") );
+            AppendMenu( pm, MF_STRING,    100004, TEXT("Next Change (only)") );
+            AppendMenu( pm, MF_STRING,    100005, TEXT("Next Save (only)") );
+            AppendMenu( pm, MF_SEPARATOR, 0,      TEXT("") );
+            AppendMenu( pm, MF_STRING,    100006, TEXT("Reset Current File") );
+
+            POINT pos;
+            GetCursorPos( &pos );
+            SetForegroundWindow( nppData._nppHandle );
+            int ret = TrackPopupMenu(
+                pm, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD,
+                pos.x, pos.y, 0, nppData._nppHandle, NULL
+            );
+            PostMessage( nppData._nppHandle, WM_NULL, 0, 0 );
+
+            if ( ret == 0 )
+                break;
+
+            else if ( ret == 100000 )
+                gotoPrevChangeAll();
+            else if ( ret == 100001 )
+                gotoPrevChangeCOnly();
+            else if ( ret == 100002 )
+                gotoPrevChangeSOnly();
+            else if ( ret == 100003 )
+                gotoNextChangeAll();
+            else if ( ret == 100004 )
+                gotoNextChangeCOnly();
+            else if ( ret == 100005 )
+                gotoNextChangeSOnly();
+            else if ( ret == 100006 )
+                clearAllCF();
+
+            updatePanel();
+        }
+        break;
+
         case SCN_MODIFIED:
         {
             if ( !g_enabled )
@@ -189,7 +239,7 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
             commandMenuCleanUp();
         }
         break;
-    
+
         default:
             return;
     }
