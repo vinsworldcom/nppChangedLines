@@ -103,14 +103,24 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
 
         case SCN_MARGINCLICK:
         {
-            if ( g_enabled )
-            {
-                if ( notifyCode->margin == g_Margin )
-                    if ( notifyCode->modifiers & SCMOD_SHIFT )
-                        gotoPrevChange();
-                    else
-                        gotoNextChange();
-            }
+            if ( !g_enabled )
+                break;
+
+            if ( notifyCode->margin != g_Margin )
+                break;
+
+            if ( notifyCode->modifiers == SCMOD_NORM )
+                gotoNextChangeAll();
+            else if ( notifyCode->modifiers == SCMOD_SHIFT )
+                gotoPrevChangeAll();
+            else if ( notifyCode->modifiers == SCMOD_CTRL )
+                gotoNextChangeCOnly();
+            else if ( notifyCode->modifiers == (SCMOD_SHIFT | SCMOD_CTRL) )
+                gotoPrevChangeCOnly();
+            else if ( notifyCode->modifiers == SCMOD_ALT )
+                gotoNextChangeSOnly();
+            else if ( notifyCode->modifiers == (SCMOD_SHIFT | SCMOD_ALT) )
+                gotoPrevChangeSOnly();
         }
         break;
 

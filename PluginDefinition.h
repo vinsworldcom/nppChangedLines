@@ -38,7 +38,7 @@ const TCHAR NPP_PLUGIN_NAME[] = TEXT( "Changed Lines" );
 //
 // Here define the number of your plugin commands
 //
-const int nbFunc = 11;
+const int nbFunc = 17;
 
 //
 // Initialization of your plugin data
@@ -97,8 +97,14 @@ void DestroyPlugin();
 void clearAllCF();
 void doEnable();
 void gotoLine( Sci_Position );
-void gotoNextChange();
-void gotoPrevChange();
+void gotoNextChangeAll();
+void gotoNextChangeCOnly();
+void gotoNextChangeSOnly();
+void gotoNextChange(bool, bool);
+void gotoPrevChangeAll();
+void gotoPrevChangeCOnly();
+void gotoPrevChangeSOnly();
+void gotoPrevChange(bool, bool);
 void DockableDlg();
 
 #endif //PLUGINDEFINITION_H

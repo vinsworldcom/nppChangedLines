@@ -193,25 +193,23 @@ void commandMenuInit()
     NextChgKey->_isShift    = false;
     NextChgKey->_key        = 0x59;  //VK_Y
 
-    setCommand( ENABLE_INDEX, TEXT( "&Enable" ), doEnable, NULL,
-                g_enabled ? true : false );
-    setCommand( DOCKABLE_INDEX, TEXT( "Changed &Lines Panel" ), DockableDlg,
-                NULL, false );
-    setCommand( 2, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
-    setCommand( 3, TEXT( "Goto &Next Change" ), gotoNextChange, NULL,
-                false );
-    setCommand( 4, TEXT( "Goto &Previous Change" ), gotoPrevChange, NULL,
-                false );
-    setCommand( 5, TEXT( "&Clear all in Current File" ), clearAllCF, NULL,
-                false );
-    setCommand( 6, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
-    setCommand( 7, TEXT( "Goto Next Position" ), gotoNextPos, NextChgKey,
-                false );
-    setCommand( 8, TEXT( "Goto Previous Position" ), gotoPrevPos, PreChgKey,
-                false );
-    setCommand( 9, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
-    setCommand( 10, TEXT( "&Settings" ), doSettings, NULL,
-                false );
+    setCommand( ENABLE_INDEX,   TEXT( "&Enable" ), doEnable, NULL, g_enabled ? true : false );
+    setCommand( DOCKABLE_INDEX, TEXT( "Changed &Lines Panel" ), DockableDlg, NULL, false );
+    setCommand( 2,  TEXT( "-SEPARATOR-" ), NULL, NULL, false );
+    setCommand( 3,  TEXT( "Goto &Next Change" ), gotoNextChangeAll, NULL, false );
+    setCommand( 4,  TEXT( "Goto Next Change (Only)" ), gotoNextChangeCOnly, NULL, false );
+    setCommand( 5,  TEXT( "Goto Next Save (Only)" ), gotoNextChangeSOnly, NULL, false );
+    setCommand( 6,  TEXT( "-SEPARATOR-" ), NULL, NULL, false );
+    setCommand( 7,  TEXT( "Goto &Previous Change" ), gotoPrevChangeAll, NULL, false );
+    setCommand( 8,  TEXT( "Goto Previous Change (Only)" ), gotoPrevChangeCOnly, NULL, false );
+    setCommand( 9,  TEXT( "Goto Previous Save (Only)" ), gotoPrevChangeSOnly, NULL, false );
+    setCommand( 10, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
+    setCommand( 11, TEXT( "&Clear all in Current File" ), clearAllCF, NULL, false );
+    setCommand( 12, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
+    setCommand( 13, TEXT( "Goto Next Position" ), gotoNextPos, NextChgKey, false );
+    setCommand( 14, TEXT( "Goto Previous Position" ), gotoPrevPos, PreChgKey, false );
+    setCommand( 15, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
+    setCommand( 16, TEXT( "&Settings" ), doSettings, NULL, false );
 }
 
 //
@@ -430,7 +428,22 @@ void gotoLine(Sci_Position line)
     ::SendMessage( hCurScintilla, SCI_ENSUREVISIBLEENFORCEPOLICY, line, 0 );
 }
 
-void gotoNextChange()
+void gotoNextChangeAll()
+{
+    gotoNextChange(FALSE, FALSE);
+}
+
+void gotoNextChangeCOnly()
+{
+    gotoNextChange(TRUE, FALSE);
+}
+
+void gotoNextChangeSOnly()
+{
+    gotoNextChange(FALSE, TRUE);
+}
+
+void gotoNextChange(bool changed, bool saved)
 {
     HWND hCurScintilla = getCurScintilla();
 
@@ -439,9 +452,11 @@ void gotoNextChange()
     Sci_Position searchStart = ( Sci_Position )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
                                             pos, 0 );
 
-    int mask = g_ChangeMask;
-    if ( g_GotoIncSave )
-        mask |= g_SaveMask | g_RevModMask | g_RevOriMask;
+    int mask = g_ChangeMask | g_SaveMask | g_RevModMask | g_RevOriMask;
+    if ( changed )
+        mask = g_ChangeMask | g_RevModMask;
+    if ( saved )
+        mask = g_SaveMask | g_RevOriMask;
 
 /*
     `markerNext` doesn't work on ChangeHistory:
@@ -508,18 +523,35 @@ void gotoNextChange()
         gotoLine(line);
 }
 
-void gotoPrevChange()
+void gotoPrevChangeAll()
+{
+    gotoPrevChange(FALSE, FALSE);
+}
+
+void gotoPrevChangeCOnly()
+{
+    gotoPrevChange(TRUE, FALSE);
+}
+
+void gotoPrevChangeSOnly()
+{
+    gotoPrevChange(FALSE, TRUE);
+}
+
+void gotoPrevChange(bool changed, bool saved)
 {
     HWND hCurScintilla = getCurScintilla();
 
-    Sci_Position line = 0;
+    Sci_Position line = -1;
     Sci_Position pos = ( Sci_Position )::SendMessage( hCurScintilla, SCI_GETCURRENTPOS, 0, 0 );
     Sci_Position searchStart = ( Sci_Position )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
                                             pos, 0 );
 
-    int mask = g_ChangeMask;
-    if ( g_GotoIncSave )
-        mask |= g_SaveMask | g_RevModMask | g_RevOriMask;
+    int mask = g_ChangeMask | g_SaveMask | g_RevModMask | g_RevOriMask;
+    if ( changed )
+        mask = g_ChangeMask | g_RevModMask;
+    if ( saved )
+        mask = g_SaveMask | g_RevOriMask;
 
     while ( true )
     {
