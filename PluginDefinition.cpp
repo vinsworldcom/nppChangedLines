@@ -35,14 +35,14 @@ std::wstringstream debugString;
 const TCHAR configFileName[]     = TEXT( "ChangedLines.ini" );
 const TCHAR sectionName[]        = TEXT( "Settings" );
 const TCHAR iniKeyEnabled[]      = TEXT( "Enabled" );
-const TCHAR iniKeyRaisePanel[]   = TEXT( "RaisePanelorToggle" );
-const TCHAR iniKeyGotoIncSave[]  = TEXT( "GotoIncludeSave" );
-const TCHAR iniKeyWidth[]        = TEXT( "Width" );
+const TCHAR iniKeyRaisePanel[]   = TEXT( "PanelRaiseorToggle" );
+const TCHAR iniKeyPanelIncSave[] = TEXT( "PanelIncludeSave" );
+const TCHAR iniKeyWidth[]        = TEXT( "MarginWidth" );
 const TCHAR iniKeyColorChange[]  = TEXT( "ColorChange" );
 const TCHAR iniKeyColorSave[]    = TEXT( "ColorSave" );
 const TCHAR iniKeyColorRevMod[]  = TEXT( "ColorRevMod" );
 const TCHAR iniKeyColorRevOri[]  = TEXT( "ColorRevOri" );
-const TCHAR iniKeyUseNppColors[] = TEXT( "UseNppCStyle" );
+const TCHAR iniKeyUseNppColors[] = TEXT( "UseNppColors" );
 
 DemoDlg _Panel;
 toolbarIcons g_TBCL;
@@ -61,18 +61,18 @@ TCHAR iniFilePath[MAX_PATH];
 bool g_NppReady        = false;
 bool g_RaisePanel      = false;
 bool g_enabled         = true;
-bool g_GotoIncSave     = DEFAULTGOTOINCSAVE;
+bool g_PanelIncSave    = DEFAULTGOTOINCSAVE;
 int  g_Margin          = DEFAULTMARGIN;
 int  g_Width           = DEFAULTWIDTH;
-long g_ChangeColor     = DEFAULTCOLOR_MODIFIED;
-long g_SaveColor       = DEFAULTCOLOR_SAVED;
-long g_RevModColor     = DEFAULTCOLOR_REVERTED_TO_MODIFIED;
-long g_RevOriColor     = DEFAULTCOLOR_REVERTED_TO_ORIGIN;
+long g_ColorChange     = DEFAULTCOLOR_MODIFIED;
+long g_ColorSave       = DEFAULTCOLOR_SAVED;
+long g_ColorRevMod     = DEFAULTCOLOR_REVERTED_TO_MODIFIED;
+long g_ColorRevOri     = DEFAULTCOLOR_REVERTED_TO_ORIGIN;
 bool g_useNppColors    = false;
-int  g_ChangeMask      = ( 1 << SC_MARKNUM_HISTORY_MODIFIED );
-int  g_SaveMask        = ( 1 << SC_MARKNUM_HISTORY_SAVED );
-int  g_RevModMask      = ( 1 << SC_MARKNUM_HISTORY_REVERTED_TO_MODIFIED );
-int  g_RevOriMask      = ( 1 << SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN );
+int  g_MaskChange      = ( 1 << SC_MARKNUM_HISTORY_MODIFIED );
+int  g_MaskSave        = ( 1 << SC_MARKNUM_HISTORY_SAVED );
+int  g_MaskRevMod      = ( 1 << SC_MARKNUM_HISTORY_REVERTED_TO_MODIFIED );
+int  g_MaskRevOri      = ( 1 << SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN );
 
 #define TIMER_POS       2
 #define TIMER_POS_DELAY 2000
@@ -99,21 +99,21 @@ void pluginCleanUp()
 
     ::WritePrivateProfileString( sectionName, iniKeyEnabled,
                                  g_enabled ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
-    ::WritePrivateProfileString( sectionName, iniKeyGotoIncSave,
-                                 g_GotoIncSave ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
+    ::WritePrivateProfileString( sectionName, iniKeyPanelIncSave,
+                                 g_PanelIncSave ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
     _itot_s( g_Width, buf, NUMDIGIT, 10 );
     ::WritePrivateProfileString( sectionName, iniKeyWidth, buf,
                                  iniFilePath );
-    _itot_s( g_ChangeColor, buf, NUMDIGIT, 10 );
+    _itot_s( g_ColorChange, buf, NUMDIGIT, 10 );
     ::WritePrivateProfileString( sectionName, iniKeyColorChange, buf,
                                  iniFilePath );
-    _itot_s( g_SaveColor, buf, NUMDIGIT, 10 );
+    _itot_s( g_ColorSave, buf, NUMDIGIT, 10 );
     ::WritePrivateProfileString( sectionName, iniKeyColorSave, buf,
                                  iniFilePath );
-    _itot_s( g_RevModColor, buf, NUMDIGIT, 10 );
+    _itot_s( g_ColorRevMod, buf, NUMDIGIT, 10 );
     ::WritePrivateProfileString( sectionName, iniKeyColorRevMod, buf,
                                  iniFilePath );
-    _itot_s( g_RevOriColor, buf, NUMDIGIT, 10 );
+    _itot_s( g_ColorRevOri, buf, NUMDIGIT, 10 );
     ::WritePrivateProfileString( sectionName, iniKeyColorRevOri, buf,
                                  iniFilePath );
     ::WritePrivateProfileString( sectionName, iniKeyUseNppColors,
@@ -154,17 +154,17 @@ void commandMenuInit()
     // get the parameter value from plugin config
     g_enabled         = ::GetPrivateProfileInt( sectionName, iniKeyEnabled, 1,
                         iniFilePath );
-    g_GotoIncSave     = ::GetPrivateProfileInt( sectionName, iniKeyGotoIncSave, 0,
+    g_PanelIncSave     = ::GetPrivateProfileInt( sectionName, iniKeyPanelIncSave, 0,
                         iniFilePath );
     g_Width           = ::GetPrivateProfileInt( sectionName, iniKeyWidth,
                         DEFAULTWIDTH, iniFilePath );
-    g_ChangeColor     = ::GetPrivateProfileInt( sectionName, iniKeyColorChange,
+    g_ColorChange     = ::GetPrivateProfileInt( sectionName, iniKeyColorChange,
                         DEFAULTCOLOR_MODIFIED, iniFilePath );
-    g_SaveColor       = ::GetPrivateProfileInt( sectionName, iniKeyColorSave,
+    g_ColorSave       = ::GetPrivateProfileInt( sectionName, iniKeyColorSave,
                         DEFAULTCOLOR_SAVED, iniFilePath );
-    g_RevModColor     = ::GetPrivateProfileInt( sectionName, iniKeyColorRevMod,
+    g_ColorRevMod     = ::GetPrivateProfileInt( sectionName, iniKeyColorRevMod,
                         DEFAULTCOLOR_REVERTED_TO_MODIFIED, iniFilePath );
-    g_RevOriColor     = ::GetPrivateProfileInt( sectionName, iniKeyColorRevOri,
+    g_ColorRevOri     = ::GetPrivateProfileInt( sectionName, iniKeyColorRevOri,
                         DEFAULTCOLOR_REVERTED_TO_ORIGIN, iniFilePath );
     g_useNppColors    = ::GetPrivateProfileInt( sectionName, iniKeyUseNppColors,
                                                 0, iniFilePath );
@@ -282,26 +282,26 @@ void updateWidth()
 
 void updateChangeColor()
 {
-    UpdatePlugin( SCI_MARKERSETFORE, SC_MARKNUM_HISTORY_MODIFIED, g_ChangeColor );
-    UpdatePlugin( SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_MODIFIED, g_ChangeColor );
+    UpdatePlugin( SCI_MARKERSETFORE, SC_MARKNUM_HISTORY_MODIFIED, g_ColorChange );
+    UpdatePlugin( SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_MODIFIED, g_ColorChange );
 }
 
 void updateSaveColor()
 {
-    UpdatePlugin( SCI_MARKERSETFORE, SC_MARKNUM_HISTORY_SAVED, g_SaveColor );
-    UpdatePlugin( SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_SAVED, g_SaveColor );
+    UpdatePlugin( SCI_MARKERSETFORE, SC_MARKNUM_HISTORY_SAVED, g_ColorSave );
+    UpdatePlugin( SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_SAVED, g_ColorSave );
 }
 
 void updateRevertModColor()
 {
-    UpdatePlugin( SCI_MARKERSETFORE, SC_MARKNUM_HISTORY_REVERTED_TO_MODIFIED, g_RevModColor );
-    UpdatePlugin( SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_REVERTED_TO_MODIFIED, g_RevModColor );
+    UpdatePlugin( SCI_MARKERSETFORE, SC_MARKNUM_HISTORY_REVERTED_TO_MODIFIED, g_ColorRevMod );
+    UpdatePlugin( SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_REVERTED_TO_MODIFIED, g_ColorRevMod );
 }
 
 void updateRevertOriginColor()
 {
-    UpdatePlugin( SCI_MARKERSETFORE, SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN, g_RevOriColor );
-    UpdatePlugin( SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN, g_RevOriColor );
+    UpdatePlugin( SCI_MARKERSETFORE, SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN, g_ColorRevOri );
+    UpdatePlugin( SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN, g_ColorRevOri );
 }
 
 void updatePanel()
@@ -360,7 +360,7 @@ void InitPlugin()
         int OriMask = ( int )::SendMessage( hCurScintilla, SCI_GETMARGINMASKN,
                                             g_Margin, 0 );
         int tmpMask = 0;
-        tmpMask = OriMask | g_ChangeMask | g_SaveMask | g_RevModMask | g_RevOriMask;
+        tmpMask = OriMask | g_MaskChange | g_MaskSave | g_MaskRevMod | g_MaskRevOri;
         SendMessage( hCurScintilla, SCI_SETMARGINMASKN, g_Margin, tmpMask );
         SendMessage( hCurScintilla, SCI_SETMARGINSENSITIVEN, g_Margin, true );
     }
@@ -452,11 +452,11 @@ void gotoNextChange(bool changed, bool saved)
     Sci_Position searchStart = ( Sci_Position )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
                                             pos, 0 );
 
-    int mask = g_ChangeMask | g_SaveMask | g_RevModMask | g_RevOriMask;
+    int mask = g_MaskChange | g_MaskSave | g_MaskRevMod | g_MaskRevOri;
     if ( changed )
-        mask = g_ChangeMask | g_RevModMask;
+        mask = g_MaskChange | g_MaskRevMod;
     if ( saved )
-        mask = g_SaveMask | g_RevOriMask;
+        mask = g_MaskSave | g_MaskRevOri;
 
 /*
     `markerNext` doesn't work on ChangeHistory:
@@ -547,11 +547,11 @@ void gotoPrevChange(bool changed, bool saved)
     Sci_Position searchStart = ( Sci_Position )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
                                             pos, 0 );
 
-    int mask = g_ChangeMask | g_SaveMask | g_RevModMask | g_RevOriMask;
+    int mask = g_MaskChange | g_MaskSave | g_MaskRevMod | g_MaskRevOri;
     if ( changed )
-        mask = g_ChangeMask | g_RevModMask;
+        mask = g_MaskChange | g_MaskRevMod;
     if ( saved )
-        mask = g_SaveMask | g_RevOriMask;
+        mask = g_MaskSave | g_MaskRevOri;
 
     while ( true )
     {

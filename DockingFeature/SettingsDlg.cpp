@@ -12,10 +12,10 @@ extern HINSTANCE g_hInst;
 extern NppData   nppData;
 
 extern int  g_Width;
-extern long g_ChangeColor;
-extern long g_SaveColor;
-extern long g_RevModColor;
-extern long g_RevOriColor;
+extern long g_ColorChange;
+extern long g_ColorSave;
+extern long g_ColorRevMod;
+extern long g_ColorRevOri;
 
 HBRUSH ghButtonColor;
 
@@ -63,22 +63,22 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
         {
             if ( ( HWND )lParam == GetDlgItem( hWndDlg, IDC_BTN_COLORCHANGE ) )
             {
-                ghButtonColor = CreateSolidBrush( g_ChangeColor );
+                ghButtonColor = CreateSolidBrush( g_ColorChange );
                 return ( INT_PTR )ghButtonColor;
             }
             else if ( ( HWND )lParam == GetDlgItem( hWndDlg, IDC_BTN_COLORSAVE ) )
             {
-                ghButtonColor = CreateSolidBrush( g_SaveColor );
+                ghButtonColor = CreateSolidBrush( g_ColorSave );
                 return ( INT_PTR )ghButtonColor;
             }
             else if ( ( HWND )lParam == GetDlgItem( hWndDlg, IDC_BTN_COLORREVMOD ) )
             {
-                ghButtonColor = CreateSolidBrush( g_RevModColor );
+                ghButtonColor = CreateSolidBrush( g_ColorRevMod );
                 return ( INT_PTR )ghButtonColor;
             }
             else if ( ( HWND )lParam == GetDlgItem( hWndDlg, IDC_BTN_COLORREVORI ) )
             {
-                ghButtonColor = CreateSolidBrush( g_RevOriColor );
+                ghButtonColor = CreateSolidBrush( g_ColorRevOri );
                 return ( INT_PTR )ghButtonColor;
             }
 
@@ -135,12 +135,12 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
 
                     cc.Flags        = CC_RGBINIT | CC_FULLOPEN /* | CC_ANYCOLOR */;
                     cc.hwndOwner    = hWndDlg;
-                    cc.rgbResult    = g_ChangeColor;
+                    cc.rgbResult    = g_ColorChange;
                     cc.lpCustColors = rgbCustom;
 
                     if ( ChooseColor( &cc ) )
                     {
-                        g_ChangeColor = cc.rgbResult;
+                        g_ColorChange = cc.rgbResult;
                         updateChangeColor();
                         InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORCHANGE ), NULL, TRUE );
                     }
@@ -150,7 +150,7 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
 
                 case IDC_BTN_COLORCHANGEDEF :
                 {
-                    g_ChangeColor = DEFAULTCOLOR_MODIFIED;
+                    g_ColorChange = DEFAULTCOLOR_MODIFIED;
                     updateChangeColor();
                     InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORCHANGE ), NULL, TRUE );
                     return TRUE;
@@ -163,12 +163,12 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
 
                     cc.Flags        = CC_RGBINIT | CC_FULLOPEN /* | CC_ANYCOLOR */;
                     cc.hwndOwner    = hWndDlg;
-                    cc.rgbResult    = g_SaveColor;
+                    cc.rgbResult    = g_ColorSave;
                     cc.lpCustColors = rgbCustom;
 
                     if ( ChooseColor( &cc ) )
                     {
-                        g_SaveColor = cc.rgbResult;
+                        g_ColorSave = cc.rgbResult;
                         updateSaveColor();
                         InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORSAVE ), NULL, TRUE );
                     }
@@ -178,7 +178,7 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
 
                 case IDC_BTN_COLORSAVEDEF :
                 {
-                    g_SaveColor = DEFAULTCOLOR_SAVED;
+                    g_ColorSave = DEFAULTCOLOR_SAVED;
                     updateSaveColor();
                     InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORSAVE ), NULL, TRUE );
                     return TRUE;
@@ -191,12 +191,12 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
 
                     cc.Flags        = CC_RGBINIT | CC_FULLOPEN /* | CC_ANYCOLOR */;
                     cc.hwndOwner    = hWndDlg;
-                    cc.rgbResult    = g_RevModColor;
+                    cc.rgbResult    = g_ColorRevMod;
                     cc.lpCustColors = rgbCustom;
 
                     if ( ChooseColor( &cc ) )
                     {
-                        g_RevModColor = cc.rgbResult;
+                        g_ColorRevMod = cc.rgbResult;
                         updateRevertModColor();
                         InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORREVMOD ), NULL, TRUE );
                     }
@@ -206,7 +206,7 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
 
                 case IDC_BTN_COLORREVMODDEF :
                 {
-                    g_RevModColor = DEFAULTCOLOR_REVERTED_TO_MODIFIED;
+                    g_ColorRevMod = DEFAULTCOLOR_REVERTED_TO_MODIFIED;
                     updateRevertModColor();
                     InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORREVMOD ), NULL, TRUE );
                     return TRUE;
@@ -219,12 +219,12 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
 
                     cc.Flags        = CC_RGBINIT | CC_FULLOPEN /* | CC_ANYCOLOR */;
                     cc.hwndOwner    = hWndDlg;
-                    cc.rgbResult    = g_RevOriColor;
+                    cc.rgbResult    = g_ColorRevOri;
                     cc.lpCustColors = rgbCustom;
 
                     if ( ChooseColor( &cc ) )
                     {
-                        g_RevOriColor = cc.rgbResult;
+                        g_ColorRevOri = cc.rgbResult;
                         updateRevertOriginColor();
                         InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORREVORI ), NULL, TRUE );
                     }
@@ -234,7 +234,7 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
 
                 case IDC_BTN_COLORREVORIDEF :
                 {
-                    g_RevOriColor = DEFAULTCOLOR_REVERTED_TO_ORIGIN;
+                    g_ColorRevOri = DEFAULTCOLOR_REVERTED_TO_ORIGIN;
                     updateRevertOriginColor();
                     InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORREVORI ), NULL, TRUE );
                     return TRUE;

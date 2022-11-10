@@ -28,13 +28,13 @@
 #include <windowsx.h>
 
 extern bool g_NppReady;
-extern bool g_GotoIncSave;
+extern bool g_PanelIncSave;
 extern bool g_useNppColors;
 extern bool g_RaisePanel;
-extern int g_ChangeMask;
-extern int g_SaveMask;
-extern int g_RevModMask;
-extern int g_RevOriMask;
+extern int g_MaskChange;
+extern int g_MaskSave;
+extern int g_MaskRevMod;
+extern int g_MaskRevOri;
 
 extern circular_buffer<tDocPos> prevPos;
 extern circular_buffer<tDocPos> nextPos;
@@ -157,10 +157,10 @@ void DemoDlg::updateList()
 
     HWND hCurScintilla = getCurScintilla();
 
-    int mask = g_ChangeMask | g_RevModMask;
+    int mask = g_MaskChange | g_MaskRevMod;
 
-    if ( g_GotoIncSave )
-        mask |= g_SaveMask | g_RevOriMask;
+    if ( g_PanelIncSave )
+        mask |= g_MaskSave | g_MaskRevOri;
 
     Sci_Position line = 0;
     Sci_Position textLength = ( Sci_Position)::SendMessage( hCurScintilla, SCI_GETTEXTLENGTH, 0, 0 );
@@ -191,7 +191,7 @@ void DemoDlg::updateList()
 void DemoDlg::refreshDialog()
 {
     SendMessage( GetDlgItem( _hSelf, IDC_CHK_INCSAVES ), BM_SETCHECK,
-                 ( WPARAM )( g_GotoIncSave ? 1 : 0 ), 0 );
+                 ( WPARAM )( g_PanelIncSave ? 1 : 0 ), 0 );
     SendMessage( GetDlgItem( _hSelf, IDC_CHK_NPPCOLOR ), BM_SETCHECK,
                  ( WPARAM )( g_useNppColors ? 1 : 0 ), 0 );
     SendMessage( GetDlgItem( _hSelf, IDC_CHK_PANELTOGGLE ), BM_SETCHECK,
@@ -391,9 +391,9 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                                                       BM_GETCHECK, 0, 0 );
 
                     if ( check & BST_CHECKED )
-                        g_GotoIncSave = true;
+                        g_PanelIncSave = true;
                     else
-                        g_GotoIncSave = false;
+                        g_PanelIncSave = false;
 
                     updatePanel();
 
