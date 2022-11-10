@@ -197,17 +197,17 @@ void commandMenuInit()
     setCommand( DOCKABLE_INDEX, TEXT( "Changed &Lines Panel" ), DockableDlg, NULL, false );
     setCommand( 2,  TEXT( "-SEPARATOR-" ), NULL, NULL, false );
     setCommand( 3,  TEXT( "Goto &Previous Change" ), gotoPrevChangeAll, NULL, false );
-    setCommand( 4,  TEXT( "Goto Previous Change (Only)" ), gotoPrevChangeCOnly, NULL, false );
-    setCommand( 5,  TEXT( "Goto Previous Save (Only)" ), gotoPrevChangeSOnly, NULL, false );
+    setCommand( 4,  TEXT( "Goto Previous Change (only)" ), gotoPrevChangeCOnly, NULL, false );
+    setCommand( 5,  TEXT( "Goto Previous Save (only)" ), gotoPrevChangeSOnly, NULL, false );
     setCommand( 6,  TEXT( "-SEPARATOR-" ), NULL, NULL, false );
     setCommand( 7,  TEXT( "Goto &Next Change" ), gotoNextChangeAll, NULL, false );
-    setCommand( 8,  TEXT( "Goto Next Change (Only)" ), gotoNextChangeCOnly, NULL, false );
-    setCommand( 9,  TEXT( "Goto Next Save (Only)" ), gotoNextChangeSOnly, NULL, false );
+    setCommand( 8,  TEXT( "Goto Next Change (only)" ), gotoNextChangeCOnly, NULL, false );
+    setCommand( 9,  TEXT( "Goto Next Save (only)" ), gotoNextChangeSOnly, NULL, false );
     setCommand( 10, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
     setCommand( 11, TEXT( "&Clear Change History (current file)" ), clearAllCF, NULL, false );
     setCommand( 12, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
-    setCommand( 13, TEXT( "Goto Previous Position" ), gotoPrevPos, PreChgKey, false );
-    setCommand( 14, TEXT( "Goto Next Position" ), gotoNextPos, NextChgKey, false );
+    setCommand( 13, TEXT( "Goto Pre&vious Position" ), gotoPrevPos, PreChgKey, false );
+    setCommand( 14, TEXT( "Goto Ne&xt Position" ), gotoNextPos, NextChgKey, false );
     setCommand( 15, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
     setCommand( 16, TEXT( "&Settings" ), doSettings, NULL, false );
 }
