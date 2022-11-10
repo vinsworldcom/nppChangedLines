@@ -142,7 +142,7 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
             AppendMenu( pm, MF_STRING,    100004, TEXT("Next Change (only)") );
             AppendMenu( pm, MF_STRING,    100005, TEXT("Next Save (only)") );
             AppendMenu( pm, MF_SEPARATOR, 0,      TEXT("") );
-            AppendMenu( pm, MF_STRING,    100006, TEXT("Reset Current File") );
+            AppendMenu( pm, MF_STRING,    100006, TEXT("Clear Change History (current file)") );
 
             POINT pos;
             GetCursorPos( &pos );
