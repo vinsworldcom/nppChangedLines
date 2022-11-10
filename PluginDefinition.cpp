@@ -430,17 +430,17 @@ void gotoLine(Sci_Position line)
 
 void gotoNextChangeAll()
 {
-    gotoNextChange(FALSE, FALSE);
+    gotoNextChange(false, false);
 }
 
 void gotoNextChangeCOnly()
 {
-    gotoNextChange(TRUE, FALSE);
+    gotoNextChange(true, false);
 }
 
 void gotoNextChangeSOnly()
 {
-    gotoNextChange(FALSE, TRUE);
+    gotoNextChange(false, true);
 }
 
 void gotoNextChange(bool changed, bool saved)
@@ -525,17 +525,17 @@ void gotoNextChange(bool changed, bool saved)
 
 void gotoPrevChangeAll()
 {
-    gotoPrevChange(FALSE, FALSE);
+    gotoPrevChange(false, false);
 }
 
 void gotoPrevChangeCOnly()
 {
-    gotoPrevChange(TRUE, FALSE);
+    gotoPrevChange(true, false);
 }
 
 void gotoPrevChangeSOnly()
 {
-    gotoPrevChange(FALSE, TRUE);
+    gotoPrevChange(false, true);
 }
 
 void gotoPrevChange(bool changed, bool saved)

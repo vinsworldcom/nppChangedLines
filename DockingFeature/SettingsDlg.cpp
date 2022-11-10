@@ -16,15 +16,11 @@ extern long g_ChangeColor;
 extern long g_SaveColor;
 extern long g_RevModColor;
 extern long g_RevOriColor;
-extern bool g_GotoIncSave;
 
 HBRUSH ghButtonColor;
 
 void refreshSettings( HWND hWndDlg )
 {
-    SendMessage( GetDlgItem( hWndDlg, IDC_CHK_INCSAVES ), BM_SETCHECK,
-                 ( WPARAM )( g_GotoIncSave ? 1 : 0 ), 0 );
-
     TCHAR strHint[500] = {0};
     wsprintf( strHint, TEXT( "%d" ), g_Width );
     SendMessage( GetDlgItem( hWndDlg, IDC_EDT_WIDTH ), WM_SETTEXT, 0,
@@ -116,21 +112,6 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
                 case IDB_OK:
                     PostMessage( hWndDlg, WM_CLOSE, 0, 0 );
                     return TRUE;
-
-                case IDC_CHK_INCSAVES:
-                {
-                    int check = ( int )::SendMessage( GetDlgItem( hWndDlg, IDC_CHK_INCSAVES ),
-                                                      BM_GETCHECK, 0, 0 );
-
-                    if ( check & BST_CHECKED )
-                        g_GotoIncSave = true;
-                    else
-                        g_GotoIncSave = false;
-
-                    updatePanel();
-
-                    return TRUE;
-                }
 
                 case MAKELONG( IDC_EDT_WIDTH, EN_CHANGE ) :
                 {

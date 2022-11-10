@@ -157,10 +157,10 @@ void DemoDlg::updateList()
 
     HWND hCurScintilla = getCurScintilla();
 
-    int mask = g_ChangeMask;
+    int mask = g_ChangeMask | g_RevModMask;
 
     if ( g_GotoIncSave )
-        mask |= g_SaveMask | g_RevModMask | g_RevOriMask;
+        mask |= g_SaveMask | g_RevOriMask;
 
     Sci_Position line = 0;
     Sci_Position textLength = ( Sci_Position)::SendMessage( hCurScintilla, SCI_GETTEXTLENGTH, 0, 0 );
@@ -190,6 +190,8 @@ void DemoDlg::updateList()
 
 void DemoDlg::refreshDialog()
 {
+    SendMessage( GetDlgItem( _hSelf, IDC_CHK_INCSAVES ), BM_SETCHECK,
+                 ( WPARAM )( g_GotoIncSave ? 1 : 0 ), 0 );
     SendMessage( GetDlgItem( _hSelf, IDC_CHK_NPPCOLOR ), BM_SETCHECK,
                  ( WPARAM )( g_useNppColors ? 1 : 0 ), 0 );
     SendMessage( GetDlgItem( _hSelf, IDC_CHK_PANELTOGGLE ), BM_SETCHECK,
@@ -380,6 +382,21 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                 case IDC_BTN_PREV:
                 {
                     gotoPrevPos();
+                    return TRUE;
+                }
+
+                case IDC_CHK_INCSAVES:
+                {
+                    int check = ( int )::SendMessage( GetDlgItem( _hSelf, IDC_CHK_INCSAVES ),
+                                                      BM_GETCHECK, 0, 0 );
+
+                    if ( check & BST_CHECKED )
+                        g_GotoIncSave = true;
+                    else
+                        g_GotoIncSave = false;
+
+                    updatePanel();
+
                     return TRUE;
                 }
 

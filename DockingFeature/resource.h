@@ -28,9 +28,10 @@
 
 #define IDI_PLUGINPANEL 2501
 
-#define IDC_CHK_ENABLED        (IDD_PLUGINPANEL + 201)
 #define IDC_CHK_INCSAVES       (IDD_PLUGINPANEL + 203)
-#define IDC_LSV1               (IDD_PLUGINPANEL + 204)
+#define IDC_CHK_NPPCOLOR       (IDD_PLUGINPANEL + 204)
+#define IDC_CHK_PANELTOGGLE    (IDD_PLUGINPANEL + 205)
+#define IDC_LSV1               (IDD_PLUGINPANEL + 206)
 
 #define IDB_TOOLBAR1    1600
 #define IDB_PAGER1      1701
@@ -47,8 +48,6 @@
 #define IDB_OK                 (IDD_SETTINGS + 1)
 
 #define IDC_EDT_WIDTH          (IDD_SETTINGS + 2)
-#define IDC_CHK_NPPCOLOR       (IDD_SETTINGS + 3)
-#define IDC_CHK_PANELTOGGLE    (IDD_SETTINGS + 4)
 
 #define IDC_GRP1               (IDD_SETTINGS + 5)
 #define IDC_BTN_COLORCHANGE    (IDD_SETTINGS + 6)
