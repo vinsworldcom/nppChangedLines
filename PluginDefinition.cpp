@@ -154,6 +154,12 @@ void commandMenuInit()
     // get the parameter value from plugin config
     g_enabled         = ::GetPrivateProfileInt( sectionName, iniKeyEnabled, 1,
                         iniFilePath );
+
+    int on = SC_CHANGE_HISTORY_DISABLED;
+    on = ( int )::SendMessage( getCurScintilla(), SCI_GETCHANGEHISTORY, 0, 0 );
+    if ( !on )
+        g_enabled = false;
+
     g_PanelIncSave     = ::GetPrivateProfileInt( sectionName, iniKeyPanelIncSave, 0,
                         iniFilePath );
     g_Width           = ::GetPrivateProfileInt( sectionName, iniKeyWidth,
@@ -400,17 +406,28 @@ void doEnable()
 
     if ( g_enabled )
     {
-        g_enabled = 0;
+        g_enabled = false;
         DestroyPlugin();
         ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
                        funcItem[ENABLE_INDEX]._cmdID, MF_UNCHECKED );
     }
     else
     {
-        g_enabled = 1;
-        InitPlugin();
-        ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
-                       funcItem[ENABLE_INDEX]._cmdID, MF_CHECKED );
+        int on = SC_CHANGE_HISTORY_DISABLED;
+        on = ( int )::SendMessage( getCurScintilla(), SCI_GETCHANGEHISTORY, 0, 0 );
+        if ( on )
+        {
+            g_enabled = true;
+            InitPlugin();
+            ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
+                           funcItem[ENABLE_INDEX]._cmdID, MF_CHECKED );
+        }
+        else
+            MessageBox( nppData._nppHandle, 
+                TEXT("Change History is disabled.  Please enable it in Notepad++ Settings."), 
+                TEXT("Change History Disabled"), 
+                MB_OK | MB_ICONINFORMATION
+            );
     }
 
 }
