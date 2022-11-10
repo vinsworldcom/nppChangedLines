@@ -92,7 +92,7 @@ void updateRevertModColor();
 void updateRevertOriginColor();
 void updatePanel();
 void updatePosition();
-void InitPlugin();
+bool InitPlugin();
 void DestroyPlugin();
 void clearAllCF();
 void doEnable();

@@ -154,12 +154,6 @@ void commandMenuInit()
     // get the parameter value from plugin config
     g_enabled         = ::GetPrivateProfileInt( sectionName, iniKeyEnabled, 1,
                         iniFilePath );
-
-    int on = SC_CHANGE_HISTORY_DISABLED;
-    on = ( int )::SendMessage( getCurScintilla(), SCI_GETCHANGEHISTORY, 0, 0 );
-    if ( !on )
-        g_enabled = false;
-
     g_PanelIncSave     = ::GetPrivateProfileInt( sectionName, iniKeyPanelIncSave, 0,
                         iniFilePath );
     g_Width           = ::GetPrivateProfileInt( sectionName, iniKeyWidth,
@@ -200,7 +194,7 @@ void commandMenuInit()
     NextChgKey->_key        = 0x59;  //VK_Y
 
     setCommand( ENABLE_INDEX,   TEXT( "&Enable Plugin Features" ), doEnable, NULL, g_enabled ? true : false );
-    setCommand( DOCKABLE_INDEX, TEXT( "Changed &Lines Panel" ), DockableDlg, NULL, false );
+    setCommand( DOCKABLE_INDEX, TEXT( "Changed &Lines Panel" ), DockableDlg, NULL, _Panel.isVisible() ? true : false );
     setCommand( 2,  TEXT( "-SEPARATOR-" ), NULL, NULL, false );
     setCommand( 3,  TEXT( "Goto &Previous Change" ), gotoPrevChangeAll, NULL, false );
     setCommand( 4,  TEXT( "Goto Previous Change (only)" ), gotoPrevChangeCOnly, NULL, false );
@@ -350,24 +344,19 @@ void updatePosition()
     updatePosTimer();
 }
 
-void InitPlugin()
+bool InitPlugin()
 {
-    HWND ScintillaArr[] = { nppData._scintillaMainHandle, nppData._scintillaSecondHandle };
+    int on = SC_CHANGE_HISTORY_DISABLED;
+    on = ( int )::SendMessage( getCurScintilla(), SCI_GETCHANGEHISTORY, 0, 0 );
+    if ( on == SC_CHANGE_HISTORY_DISABLED )
+        return false;
 
-    int margins = ( int )::SendMessage( getCurScintilla(), SCI_GETMARGINS, 0, 0 );
-    if ( margins <= g_Margin )
-        UpdatePlugin( SCI_SETMARGINS, ( g_Margin + 1 ), 0 );
+    HWND ScintillaArr[] = { nppData._scintillaMainHandle, nppData._scintillaSecondHandle };
 
     for ( int i = 0; i < 2; i++ )
     {
         HWND hCurScintilla = ScintillaArr[i];
 
-        // Mask
-        int OriMask = ( int )::SendMessage( hCurScintilla, SCI_GETMARGINMASKN,
-                                            g_Margin, 0 );
-        int tmpMask = 0;
-        tmpMask = OriMask | g_MaskChange | g_MaskSave | g_MaskRevMod | g_MaskRevOri;
-        SendMessage( hCurScintilla, SCI_SETMARGINMASKN, g_Margin, tmpMask );
         SendMessage( hCurScintilla, SCI_SETMARGINSENSITIVEN, g_Margin, true );
     }
 
@@ -376,11 +365,17 @@ void InitPlugin()
     updateSaveColor();
     updateRevertModColor();
     updateRevertOriginColor();
+
+    ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
+                   funcItem[ENABLE_INDEX]._cmdID, MF_CHECKED );
+
+    return true;
 }
 
 void DestroyPlugin()
 {
-
+    ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
+                   funcItem[ENABLE_INDEX]._cmdID, MF_UNCHECKED );
 }
 
 void clearAllCF()
@@ -408,28 +403,22 @@ void doEnable()
     {
         g_enabled = false;
         DestroyPlugin();
-        ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
-                       funcItem[ENABLE_INDEX]._cmdID, MF_UNCHECKED );
     }
     else
     {
-        int on = SC_CHANGE_HISTORY_DISABLED;
-        on = ( int )::SendMessage( getCurScintilla(), SCI_GETCHANGEHISTORY, 0, 0 );
-        if ( on )
+        g_enabled = true;
+        bool success = InitPlugin();
+        if ( ! success)
         {
-            g_enabled = true;
-            InitPlugin();
-            ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
-                           funcItem[ENABLE_INDEX]._cmdID, MF_CHECKED );
-        }
-        else
+            g_enabled = false;
+            DestroyPlugin();
             MessageBox( nppData._nppHandle, 
                 TEXT("Change History is disabled.  Please enable it in Notepad++ Settings."), 
                 TEXT("Change History Disabled"), 
                 MB_OK | MB_ICONINFORMATION
             );
+        }
     }
-
 }
 
 void gotoLine(Sci_Position line)

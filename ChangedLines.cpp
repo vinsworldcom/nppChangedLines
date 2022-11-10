@@ -90,7 +90,14 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
         {
             g_NppReady = true;
             if ( g_enabled )
-                InitPlugin();
+            {
+                bool success = InitPlugin();
+                if ( ! success)
+                {
+                    g_enabled = false;
+                    DestroyPlugin();
+                }
+            }
         }
         break;
 
