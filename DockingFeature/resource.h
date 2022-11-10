@@ -48,6 +48,7 @@
 #define IDB_OK                 (IDD_SETTINGS + 1)
 
 #define IDC_EDT_WIDTH          (IDD_SETTINGS + 2)
+#define IDC_CHK_INDICS         (IDD_SETTINGS + 3)
 
 #define IDC_GRP1               (IDD_SETTINGS + 5)
 #define IDC_BTN_COLORCHANGE    (IDD_SETTINGS + 6)

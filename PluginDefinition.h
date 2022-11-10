@@ -85,6 +85,7 @@ bool setCommand( size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc,
 HWND getCurScintilla();
 Sci_Position findNextMark( HWND, Sci_Position, int );
 Sci_Position findPrevMark( HWND, Sci_Position, int );
+void updateIndicators();
 void updateWidth();
 void updateChangeColor();
 void updateSaveColor();

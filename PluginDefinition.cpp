@@ -32,17 +32,18 @@
 std::wstringstream debugString;
 #endif
 
-const TCHAR configFileName[]     = TEXT( "ChangedLines.ini" );
-const TCHAR sectionName[]        = TEXT( "Settings" );
-const TCHAR iniKeyEnabled[]      = TEXT( "Enabled" );
-const TCHAR iniKeyRaisePanel[]   = TEXT( "PanelRaiseorToggle" );
-const TCHAR iniKeyPanelIncSave[] = TEXT( "PanelIncludeSave" );
-const TCHAR iniKeyWidth[]        = TEXT( "MarginWidth" );
-const TCHAR iniKeyColorChange[]  = TEXT( "ColorChange" );
-const TCHAR iniKeyColorSave[]    = TEXT( "ColorSave" );
-const TCHAR iniKeyColorRevMod[]  = TEXT( "ColorRevMod" );
-const TCHAR iniKeyColorRevOri[]  = TEXT( "ColorRevOri" );
-const TCHAR iniKeyUseNppColors[] = TEXT( "UseNppColors" );
+const TCHAR configFileName[]      = TEXT( "ChangedLines.ini" );
+const TCHAR sectionName[]         = TEXT( "Settings" );
+const TCHAR iniKeyEnabled[]       = TEXT( "Enabled" );
+const TCHAR iniKeyRaisePanel[]    = TEXT( "PanelRaiseorToggle" );
+const TCHAR iniKeyPanelIncSave[]  = TEXT( "PanelIncludeSave" );
+const TCHAR iniKeyWidth[]         = TEXT( "MarginWidth" );
+const TCHAR iniKeyColorChange[]   = TEXT( "ColorChange" );
+const TCHAR iniKeyColorSave[]     = TEXT( "ColorSave" );
+const TCHAR iniKeyColorRevMod[]   = TEXT( "ColorRevMod" );
+const TCHAR iniKeyColorRevOri[]   = TEXT( "ColorRevOri" );
+const TCHAR iniKeyUseNppColors[]  = TEXT( "UseNppColors" );
+const TCHAR iniKeyUseIndicators[] = TEXT( "UseIndicators" );
 
 DemoDlg _Panel;
 toolbarIcons g_TBCL;
@@ -69,6 +70,7 @@ long g_ColorSave       = DEFAULTCOLOR_SAVED;
 long g_ColorRevMod     = DEFAULTCOLOR_REVERTED_TO_MODIFIED;
 long g_ColorRevOri     = DEFAULTCOLOR_REVERTED_TO_ORIGIN;
 bool g_useNppColors    = false;
+bool g_useIndicators   = false;
 int  g_MaskChange      = ( 1 << SC_MARKNUM_HISTORY_MODIFIED );
 int  g_MaskSave        = ( 1 << SC_MARKNUM_HISTORY_SAVED );
 int  g_MaskRevMod      = ( 1 << SC_MARKNUM_HISTORY_REVERTED_TO_MODIFIED );
@@ -120,6 +122,8 @@ void pluginCleanUp()
                                  g_useNppColors ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
     ::WritePrivateProfileString( sectionName, iniKeyRaisePanel,
                                  g_RaisePanel ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
+    ::WritePrivateProfileString( sectionName, iniKeyUseIndicators,
+                                 g_useIndicators ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
 
     if (g_TBCL.hToolbarBmp) {
         ::DeleteObject(g_TBCL.hToolbarBmp);
@@ -167,6 +171,8 @@ void commandMenuInit()
     g_ColorRevOri     = ::GetPrivateProfileInt( sectionName, iniKeyColorRevOri,
                         DEFAULTCOLOR_REVERTED_TO_ORIGIN, iniFilePath );
     g_useNppColors    = ::GetPrivateProfileInt( sectionName, iniKeyUseNppColors,
+                                                0, iniFilePath );
+    g_useIndicators   = ::GetPrivateProfileInt( sectionName, iniKeyUseIndicators,
                                                 0, iniFilePath );
     g_RaisePanel      = ::GetPrivateProfileInt( sectionName, iniKeyRaisePanel,
                                                 0, iniFilePath );
@@ -266,12 +272,28 @@ Sci_Position findPrevMark( HWND hCurScintilla, Sci_Position searchStart, int mas
 
 void UpdatePlugin( UINT Msg, WPARAM wParam, LPARAM lParam )
 {
+    if ( ! g_enabled )
+        return;
+
     HWND ScintillaArr[] = { nppData._scintillaMainHandle, nppData._scintillaSecondHandle };
 
     for ( int i = 0; i < 2; i++ )
     {
         HWND hCurScintilla = ScintillaArr[i];
         SendMessage( hCurScintilla, Msg, wParam, lParam );
+    }
+}
+
+void updateIndicators()
+{
+    int on = SC_CHANGE_HISTORY_DISABLED;
+    on = ( int )::SendMessage( getCurScintilla(), SCI_GETCHANGEHISTORY, 0, 0 );
+    if ( on > SC_CHANGE_HISTORY_DISABLED )
+    {
+        if ( g_useIndicators )
+            UpdatePlugin( SCI_SETCHANGEHISTORY, on | SC_CHANGE_HISTORY_INDICATORS, 0 );
+        else
+            UpdatePlugin( SCI_SETCHANGEHISTORY, on &~ SC_CHANGE_HISTORY_INDICATORS, 0 );
     }
 }
 
@@ -361,6 +383,7 @@ bool InitPlugin()
     }
 
     updateWidth();
+    updateIndicators();
     updateChangeColor();
     updateSaveColor();
     updateRevertModColor();

@@ -107,6 +107,7 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
             if ( g_NppReady )
             {
                 updateWidth();
+                updateIndicators();
                 updatePanel();
             }
         }

@@ -16,6 +16,7 @@ extern long g_ColorChange;
 extern long g_ColorSave;
 extern long g_ColorRevMod;
 extern long g_ColorRevOri;
+extern bool g_useIndicators;
 
 HBRUSH ghButtonColor;
 
@@ -25,6 +26,8 @@ void refreshSettings( HWND hWndDlg )
     wsprintf( strHint, TEXT( "%d" ), g_Width );
     SendMessage( GetDlgItem( hWndDlg, IDC_EDT_WIDTH ), WM_SETTEXT, 0,
                  ( LPARAM )strHint );
+    SendMessage( GetDlgItem( hWndDlg, IDC_CHK_INDICS ), BM_SETCHECK,
+                 ( WPARAM )( g_useIndicators ? 1 : 0 ), 0 );
 }
 
 INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
@@ -124,6 +127,21 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
                         g_Width = val;
                         updateWidth();
                     }
+
+                    return TRUE;
+                }
+
+                case IDC_CHK_INDICS:
+                {
+                    int check = ( int )::SendMessage( GetDlgItem( hWndDlg, IDC_CHK_INDICS ),
+                                                      BM_GETCHECK, 0, 0 );
+
+                    if ( check & BST_CHECKED )
+                        g_useIndicators = true;
+                    else
+                        g_useIndicators = false;
+
+                    updateIndicators();
 
                     return TRUE;
                 }
