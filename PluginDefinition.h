@@ -38,7 +38,7 @@ const TCHAR NPP_PLUGIN_NAME[] = TEXT( "Changed Lines" );
 //
 // Here define the number of your plugin commands
 //
-const int nbFunc = 11;
+const int nbFunc = 17;
 
 //
 // Initialization of your plugin data
@@ -71,52 +71,41 @@ bool setCommand( size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc,
 //
 // Your plugin command functions
 //
-#define DEFAULTCHANGECOLOR 0x86c2ff
-#define DEFAULTSAVECOLOR   0xb5ffb5
-#define DEFAULTCHANGESTYLE SC_MARK_FULLRECT
-#define DEFAULTSAVESTYLE   SC_MARK_FULLRECT
-#define DEFAULTCHANGEMARKER 10
-#define DEFAULTSAVEMARKER   11
-#define DEFAULTGOTOINCSAVE 0
-#define DEFAULTMARGIN      4
-#define DEFAULTWIDTH       5
-#define DEFAULTARROWWIDTH  14
+#define DEFAULTGOTOINCSAVE 1
+#define DEFAULTMARGIN      2
+#define DEFAULTWIDTH       9
+#define DEFAULTCOLOR_REVERTED_TO_ORIGIN   0xbfa040
+#define DEFAULTCOLOR_SAVED                0x00a000
+#define DEFAULTCOLOR_MODIFIED             0x0080ff
+#define DEFAULTCOLOR_REVERTED_TO_MODIFIED 0x00c0a0
 #define NUMDIGIT           64
-const int MAX_MARGINS    = 10;
 
 #define N_ELEMS(x) (sizeof(x) / sizeof((x)[0]))
-const int MarkTypeArr[] =
-{
-    SC_MARK_FULLRECT,
-    SC_MARK_ARROW,
-    SC_MARK_BACKGROUND
-};
-enum MarkType
-{
-    Default = 0,
-    Arrow,
-    Highlight
-};
 
 HWND getCurScintilla();
 Sci_Position findNextMark( HWND, Sci_Position, int );
+Sci_Position findPrevMark( HWND, Sci_Position, int );
+void updateIndicators();
 void updateWidth();
 void updateChangeColor();
 void updateSaveColor();
-void updateChangeStyle();
-void updateSaveStyle();
+void updateRevertModColor();
+void updateRevertOriginColor();
 void updatePanel();
 void updatePosition();
-void InitPlugin();
+bool InitPlugin();
 void DestroyPlugin();
 void clearAllCF();
 void doEnable();
 void gotoLine( Sci_Position );
-void gotoNextChange();
-void gotoPrevChange();
-void SetBookmark( HWND, Sci_Position, Sci_Position );
-void DelBookmark( HWND, Sci_Position, Sci_Position );
-void convertChangeToSave();
+void gotoNextChangeAll();
+void gotoNextChangeCOnly();
+void gotoNextChangeSOnly();
+void gotoNextChange(bool, bool);
+void gotoPrevChangeAll();
+void gotoPrevChangeCOnly();
+void gotoPrevChangeSOnly();
+void gotoPrevChange(bool, bool);
 void DockableDlg();
 
 #endif //PLUGINDEFINITION_H

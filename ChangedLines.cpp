@@ -90,27 +90,99 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
         {
             g_NppReady = true;
             if ( g_enabled )
-                InitPlugin();
+            {
+                bool success = InitPlugin();
+                if ( ! success)
+                {
+                    g_enabled = false;
+                    DestroyPlugin();
+                }
+            }
         }
         break;
 
+        case NPPN_FILESAVED:
         case NPPN_BUFFERACTIVATED:
         {
             if ( g_NppReady )
+            {
+                updateWidth();
+                updateIndicators();
                 updatePanel();
+            }
         }
         break;
 
         case SCN_MARGINCLICK:
         {
-            if ( g_enabled )
-            {
-                if ( notifyCode->margin == g_Margin )
-                    if ( notifyCode->modifiers & SCMOD_SHIFT )
-                        gotoPrevChange();
-                    else
-                        gotoNextChange();
-            }
+            if ( !g_enabled )
+                break;
+
+            if ( notifyCode->margin != g_Margin )
+                break;
+
+            if ( notifyCode->modifiers == SCMOD_NORM )
+                gotoNextChangeAll();
+            else if ( notifyCode->modifiers == SCMOD_SHIFT )
+                gotoPrevChangeAll();
+            else if ( notifyCode->modifiers == SCMOD_CTRL )
+                gotoNextChangeCOnly();
+            else if ( notifyCode->modifiers == (SCMOD_SHIFT | SCMOD_CTRL) )
+                gotoPrevChangeCOnly();
+            else if ( notifyCode->modifiers == SCMOD_ALT )
+                gotoNextChangeSOnly();
+            else if ( notifyCode->modifiers == (SCMOD_SHIFT | SCMOD_ALT) )
+                gotoPrevChangeSOnly();
+        }
+        break;
+
+        case SCN_MARGINRIGHTCLICK:
+        {
+            if ( !g_enabled )
+                break;
+
+            if ( notifyCode->margin != g_Margin )
+                break;
+
+            HMENU pm = CreatePopupMenu();
+            AppendMenu( pm, MF_STRING,    100000, TEXT("Previous Change") );
+            AppendMenu( pm, MF_STRING,    100001, TEXT("Previous Change (only)") );
+            AppendMenu( pm, MF_STRING,    100002, TEXT("Previous Save (only)") );
+            AppendMenu( pm, MF_SEPARATOR, 0,      TEXT("") );
+            AppendMenu( pm, MF_STRING,    100003, TEXT("Next Change") );
+            AppendMenu( pm, MF_STRING,    100004, TEXT("Next Change (only)") );
+            AppendMenu( pm, MF_STRING,    100005, TEXT("Next Save (only)") );
+            AppendMenu( pm, MF_SEPARATOR, 0,      TEXT("") );
+            AppendMenu( pm, MF_STRING,    100006, TEXT("Clear Change History (current file)") );
+
+            POINT pos;
+            GetCursorPos( &pos );
+            SetForegroundWindow( nppData._nppHandle );
+            int ret = TrackPopupMenu(
+                pm, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD,
+                pos.x, pos.y, 0, nppData._nppHandle, NULL
+            );
+            PostMessage( nppData._nppHandle, WM_NULL, 0, 0 );
+
+            if ( ret == 0 )
+                break;
+
+            else if ( ret == 100000 )
+                gotoPrevChangeAll();
+            else if ( ret == 100001 )
+                gotoPrevChangeCOnly();
+            else if ( ret == 100002 )
+                gotoPrevChangeSOnly();
+            else if ( ret == 100003 )
+                gotoNextChangeAll();
+            else if ( ret == 100004 )
+                gotoNextChangeCOnly();
+            else if ( ret == 100005 )
+                gotoNextChangeSOnly();
+            else if ( ret == 100006 )
+                clearAllCF();
+
+            updatePanel();
         }
         break;
 
@@ -166,51 +238,10 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
                     if ( notifyCode->text == NULL && 1024 == notifyCode->length )
                         break;
                 }
-
-                HWND hCurScintilla = getCurScintilla();
-                isAutoModify = ( SendMessage( hCurScintilla, SCI_GETUNDOCOLLECTION, 0, 0 ) == 0 );
-
-                if ( !isAutoModify )
-                {
-                    if ( ModifyType & SC_PERFORMED_UNDO )
-                    {
-                        Sci_Position line = -1;
-
-                        if ( notifyCode->linesAdded == 0 && preModifyPos != pos && preModifyPos != -1 )
-                        {
-                            line = ( Sci_Position )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, preModifyPos, 0 );
-                            DelBookmark( hCurScintilla, line, preModifyLineAdd );
-                        }
-         
-                        if ( notifyCode->linesAdded != 0 || ( ModifyType & SC_LASTSTEPINUNDOREDO ) )
-                        {
-                            line = ( Sci_Position )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, pos, 0 );
-                            DelBookmark( hCurScintilla, line, notifyCode->linesAdded );
-                            preModifyPos = -1;
-                        }
-                        else
-                        {
-                            preModifyPos = pos;
-                            preModifyLineAdd = notifyCode->linesAdded;
-                        }
-                    }
-                    else
-                    {
-                        // SC_PERFORMED_REDO
-                        int line = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, notifyCode->position, 0 );
-                        SetBookmark( hCurScintilla, line, notifyCode->linesAdded );
-                    }
-                }
             }
 
             updatePosition();
             updatePanel();
-        }
-        break;
-
-        case SCN_SAVEPOINTREACHED:
-        {
-            convertChangeToSave();
         }
         break;
 
@@ -219,7 +250,7 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
             commandMenuCleanUp();
         }
         break;
-    
+
         default:
             return;
     }

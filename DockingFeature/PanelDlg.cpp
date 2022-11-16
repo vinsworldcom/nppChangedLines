@@ -28,11 +28,13 @@
 #include <windowsx.h>
 
 extern bool g_NppReady;
-extern bool g_GotoIncSave;
+extern bool g_PanelIncSave;
 extern bool g_useNppColors;
 extern bool g_RaisePanel;
-extern int g_ChangeMask;
-extern int g_SaveMask;
+extern int g_MaskChange;
+extern int g_MaskSave;
+extern int g_MaskRevMod;
+extern int g_MaskRevOri;
 
 extern circular_buffer<tDocPos> prevPos;
 extern circular_buffer<tDocPos> nextPos;
@@ -155,38 +157,41 @@ void DemoDlg::updateList()
 
     HWND hCurScintilla = getCurScintilla();
 
-    int mask = g_ChangeMask;
+    int mask = g_MaskChange | g_MaskRevMod;
 
-    if ( g_GotoIncSave )
-        mask |= g_SaveMask;
+    if ( g_PanelIncSave )
+        mask |= g_MaskSave | g_MaskRevOri;
 
     Sci_Position line = 0;
-    int i    = 0;
+    Sci_Position textLength = ( Sci_Position)::SendMessage( hCurScintilla, SCI_GETTEXTLENGTH, 0, 0 );
+    Sci_Position lastLine = ( Sci_Position)::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, textLength, 0 );
+    int i = 0;
 
-    while ( true )
+    while ( line < lastLine+1 )
     {
-        line = findNextMark( hCurScintilla, line, mask );
-
-        if ( line == -1 )
-            break;
-
+        int mark = ( int )::SendMessage( hCurScintilla, SCI_MARKERGET, line, 0 );
+        if ( mark & mask )
+        {
 // TODO:2020-01-19:MVINCENT:  ListView, SCI_GETLINE, https://stackoverflow.com/questions/18536125/dynamic-memory-allocation-to-char-array
-        Sci_Position lineLen = ( Sci_Position )::SendMessage( getCurScintilla(), SCI_GETLINE, line,
-                                            ( LPARAM ) 0 );
-        char *array = new char[ lineLen + 1 ];
-        SendMessage( getCurScintilla(), SCI_GETLINE, line, ( LPARAM ) array );
-        array[lineLen] = '\0';
-        std::wstring buffer = stringToWstring( array );
-        setListColumns( i, std::to_wstring( line + 1 ), buffer );
-        delete[] array;
+            Sci_Position lineLen = ( Sci_Position )::SendMessage( getCurScintilla(), SCI_GETLINE, line,
+                                                ( LPARAM ) 0 );
+            char *array = new char[ lineLen + 1 ];
+            SendMessage( getCurScintilla(), SCI_GETLINE, line, ( LPARAM ) array );
+            array[lineLen] = '\0';
+            std::wstring buffer = stringToWstring( array );
+            setListColumns( i, std::to_wstring( line + 1 ), buffer );
+            delete[] array;
 
+            i++;
+        }
         line++;
-        i++;
     }
 }
 
 void DemoDlg::refreshDialog()
 {
+    SendMessage( GetDlgItem( _hSelf, IDC_CHK_INCSAVES ), BM_SETCHECK,
+                 ( WPARAM )( g_PanelIncSave ? 1 : 0 ), 0 );
     SendMessage( GetDlgItem( _hSelf, IDC_CHK_NPPCOLOR ), BM_SETCHECK,
                  ( WPARAM )( g_useNppColors ? 1 : 0 ), 0 );
     SendMessage( GetDlgItem( _hSelf, IDC_CHK_PANELTOGGLE ), BM_SETCHECK,
@@ -380,6 +385,21 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                     return TRUE;
                 }
 
+                case IDC_CHK_INCSAVES:
+                {
+                    int check = ( int )::SendMessage( GetDlgItem( _hSelf, IDC_CHK_INCSAVES ),
+                                                      BM_GETCHECK, 0, 0 );
+
+                    if ( check & BST_CHECKED )
+                        g_PanelIncSave = true;
+                    else
+                        g_PanelIncSave = false;
+
+                    updatePanel();
+
+                    return TRUE;
+                }
+
                 case IDC_CHK_NPPCOLOR:
                 {
                     int check = ( int )::SendMessage( GetDlgItem( _hSelf, IDC_CHK_NPPCOLOR ),
@@ -416,6 +436,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                 case IDC_BTN_CLEARALL:
                 {
                     clearAllCF();
+                    updatePanel();
                     return TRUE;
                 }
 
@@ -527,7 +548,7 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
             getClientRect( rc );
 
             ::SetWindowPos( GetDlgItem( _hSelf, IDC_LSV1 ), NULL,
-                            rc.left + 15, rc.top + 100, rc.right - 25, rc.bottom - 110,
+                            rc.left + 5, rc.top + 100, rc.right - 10, rc.bottom - 105,
                             SWP_NOZORDER | SWP_SHOWWINDOW );
 
             SendMessage( GetDlgItem( _hSelf, IDC_LSV1 ), LVM_SETCOLUMNWIDTH, COL_TEXT,
