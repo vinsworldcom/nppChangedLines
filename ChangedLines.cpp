@@ -104,6 +104,9 @@ extern "C" __declspec( dllexport ) void beNotified( SCNotification *notifyCode )
         case NPPN_FILESAVED:
         case NPPN_BUFFERACTIVATED:
         {
+            if ( !g_enabled )
+                break;
+
             if ( g_NppReady )
             {
                 updateWidth();

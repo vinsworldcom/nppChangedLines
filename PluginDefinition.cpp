@@ -368,10 +368,29 @@ void updatePosition()
 
 bool InitPlugin()
 {
+    long version = ( long )::SendMessage( nppData._nppHandle, NPPM_GETNPPVERSION, true, 0 );
+    if (( HIWORD( version ) < 8 ) ||
+       (( HIWORD( version ) == 8 ) && ( LOWORD( version ) < 460 )))
+    {
+        MessageBox( nppData._nppHandle, 
+            TEXT("This version of Change Lines only works with Notepad++ >= 8.4.6."),
+            TEXT("Version Issue"), 
+            MB_OK | MB_ICONERROR
+        );
+        return false;
+    }
+
     int on = SC_CHANGE_HISTORY_DISABLED;
     on = ( int )::SendMessage( getCurScintilla(), SCI_GETCHANGEHISTORY, 0, 0 );
     if ( on == SC_CHANGE_HISTORY_DISABLED )
+    {
+        MessageBox( nppData._nppHandle, 
+            TEXT("Change History is disabled.  Please enable it in Notepad++ Settings."), 
+            TEXT("Change History Disabled"), 
+            MB_OK | MB_ICONINFORMATION
+        );
         return false;
+    }
 
     HWND ScintillaArr[] = { nppData._scintillaMainHandle, nppData._scintillaSecondHandle };
 
@@ -435,11 +454,6 @@ void doEnable()
         {
             g_enabled = false;
             DestroyPlugin();
-            MessageBox( nppData._nppHandle, 
-                TEXT("Change History is disabled.  Please enable it in Notepad++ Settings."), 
-                TEXT("Change History Disabled"), 
-                MB_OK | MB_ICONINFORMATION
-            );
         }
     }
 }
