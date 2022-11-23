@@ -12,46 +12,22 @@ extern HINSTANCE g_hInst;
 extern NppData   nppData;
 
 extern int  g_Width;
-extern long g_ChangeColor;
-extern long g_SaveColor;
-extern int  g_ChangeStyle;
-extern int  g_SaveStyle;
-extern bool g_GotoIncSave;
+extern long g_ColorChange;
+extern long g_ColorSave;
+extern long g_ColorRevMod;
+extern long g_ColorRevOri;
+extern bool g_useIndicators;
 
 HBRUSH ghButtonColor;
 
-int getMarkerType( int marker )
-{
-    switch ( marker )
-    {
-        case SC_MARK_FULLRECT:
-            return Default;
-
-        case SC_MARK_ARROW:
-            return Arrow;
-
-        case SC_MARK_BACKGROUND:
-            return Highlight;
-
-        default:
-            return -1;
-    }
-}
-
 void refreshSettings( HWND hWndDlg )
 {
-    SendMessage( GetDlgItem( hWndDlg, IDC_CHK_INCSAVES ), BM_SETCHECK,
-                 ( WPARAM )( g_GotoIncSave ? 1 : 0 ), 0 );
-
     TCHAR strHint[500] = {0};
     wsprintf( strHint, TEXT( "%d" ), g_Width );
     SendMessage( GetDlgItem( hWndDlg, IDC_EDT_WIDTH ), WM_SETTEXT, 0,
                  ( LPARAM )strHint );
-
-    SendMessage( GetDlgItem( hWndDlg, IDC_CBO_MARKCHANGE ), CB_SETCURSEL,
-                 getMarkerType( g_ChangeStyle ), 0 );
-    SendMessage( GetDlgItem( hWndDlg, IDC_CBO_MARKSAVE ), CB_SETCURSEL,
-                 getMarkerType( g_SaveStyle ), 0 );
+    SendMessage( GetDlgItem( hWndDlg, IDC_CHK_INDICS ), BM_SETCHECK,
+                 ( WPARAM )( g_useIndicators ? 1 : 0 ), 0 );
 }
 
 INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
@@ -62,17 +38,6 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
     {
         case WM_INITDIALOG:
         {
-            HWND change = GetDlgItem( hWndDlg, IDC_CBO_MARKCHANGE );
-            HWND save   = GetDlgItem( hWndDlg, IDC_CBO_MARKSAVE );
-
-            SendMessage( change, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Default" ) );
-            SendMessage( change, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Arrow" ) );
-            SendMessage( change, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Highlight" ) );
-
-            SendMessage( save, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Default" ) );
-            SendMessage( save, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Arrow" ) );
-            SendMessage( save, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Highlight" ) );
-
             std::string version;
             version = "<a>";
             version += VER_STRING;
@@ -101,12 +66,22 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
         {
             if ( ( HWND )lParam == GetDlgItem( hWndDlg, IDC_BTN_COLORCHANGE ) )
             {
-                ghButtonColor = CreateSolidBrush( g_ChangeColor );
+                ghButtonColor = CreateSolidBrush( g_ColorChange );
                 return ( INT_PTR )ghButtonColor;
             }
             else if ( ( HWND )lParam == GetDlgItem( hWndDlg, IDC_BTN_COLORSAVE ) )
             {
-                ghButtonColor = CreateSolidBrush( g_SaveColor );
+                ghButtonColor = CreateSolidBrush( g_ColorSave );
+                return ( INT_PTR )ghButtonColor;
+            }
+            else if ( ( HWND )lParam == GetDlgItem( hWndDlg, IDC_BTN_COLORREVMOD ) )
+            {
+                ghButtonColor = CreateSolidBrush( g_ColorRevMod );
+                return ( INT_PTR )ghButtonColor;
+            }
+            else if ( ( HWND )lParam == GetDlgItem( hWndDlg, IDC_BTN_COLORREVORI ) )
+            {
+                ghButtonColor = CreateSolidBrush( g_ColorRevOri );
                 return ( INT_PTR )ghButtonColor;
             }
 
@@ -141,21 +116,6 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
                     PostMessage( hWndDlg, WM_CLOSE, 0, 0 );
                     return TRUE;
 
-                case IDC_CHK_INCSAVES:
-                {
-                    int check = ( int )::SendMessage( GetDlgItem( hWndDlg, IDC_CHK_INCSAVES ),
-                                                      BM_GETCHECK, 0, 0 );
-
-                    if ( check & BST_CHECKED )
-                        g_GotoIncSave = true;
-                    else
-                        g_GotoIncSave = false;
-
-                    updatePanel();
-
-                    return TRUE;
-                }
-
                 case MAKELONG( IDC_EDT_WIDTH, EN_CHANGE ) :
                 {
                     BOOL isSuccessful;
@@ -171,6 +131,21 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
                     return TRUE;
                 }
 
+                case IDC_CHK_INDICS:
+                {
+                    int check = ( int )::SendMessage( GetDlgItem( hWndDlg, IDC_CHK_INDICS ),
+                                                      BM_GETCHECK, 0, 0 );
+
+                    if ( check & BST_CHECKED )
+                        g_useIndicators = true;
+                    else
+                        g_useIndicators = false;
+
+                    updateIndicators();
+
+                    return TRUE;
+                }
+
                 case IDC_BTN_COLORCHANGE :
                 {
                     COLORREF rgbCustom[16] = {0};
@@ -178,12 +153,12 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
 
                     cc.Flags        = CC_RGBINIT | CC_FULLOPEN /* | CC_ANYCOLOR */;
                     cc.hwndOwner    = hWndDlg;
-                    cc.rgbResult    = g_ChangeColor;
+                    cc.rgbResult    = g_ColorChange;
                     cc.lpCustColors = rgbCustom;
 
                     if ( ChooseColor( &cc ) )
                     {
-                        g_ChangeColor = cc.rgbResult;
+                        g_ColorChange = cc.rgbResult;
                         updateChangeColor();
                         InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORCHANGE ), NULL, TRUE );
                     }
@@ -193,34 +168,9 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
 
                 case IDC_BTN_COLORCHANGEDEF :
                 {
-                    g_ChangeColor = DEFAULTCHANGECOLOR;
+                    g_ColorChange = DEFAULTCOLOR_MODIFIED;
                     updateChangeColor();
                     InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORCHANGE ), NULL, TRUE );
-                    return TRUE;
-                }
-
-                case MAKELONG( IDC_CBO_MARKCHANGE, CBN_SELCHANGE ):
-                {
-                    int markType = ( int )::SendMessage( GetDlgItem( hWndDlg,
-                                                         IDC_CBO_MARKCHANGE ), CB_GETCURSEL, 0, 0 );
-
-                    if ( markType >= 0 && markType <= N_ELEMS( MarkTypeArr ) )
-                    {
-                        g_ChangeStyle = MarkTypeArr[markType];
-
-                        if ( markType == Arrow )
-                        {
-                            if ( g_Width < DEFAULTARROWWIDTH )
-                            {
-                                g_Width = DEFAULTARROWWIDTH;
-                                updateWidth();
-                            }
-                        }
-
-                        updateChangeStyle();
-                        refreshSettings( hWndDlg );
-                    }
-
                     return TRUE;
                 }
 
@@ -231,12 +181,12 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
 
                     cc.Flags        = CC_RGBINIT | CC_FULLOPEN /* | CC_ANYCOLOR */;
                     cc.hwndOwner    = hWndDlg;
-                    cc.rgbResult    = g_SaveColor;
+                    cc.rgbResult    = g_ColorSave;
                     cc.lpCustColors = rgbCustom;
 
                     if ( ChooseColor( &cc ) )
                     {
-                        g_SaveColor = cc.rgbResult;
+                        g_ColorSave = cc.rgbResult;
                         updateSaveColor();
                         InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORSAVE ), NULL, TRUE );
                     }
@@ -246,34 +196,65 @@ INT_PTR CALLBACK SettingsDlg( HWND hWndDlg, UINT msg, WPARAM wParam,
 
                 case IDC_BTN_COLORSAVEDEF :
                 {
-                    g_SaveColor = DEFAULTSAVECOLOR;
+                    g_ColorSave = DEFAULTCOLOR_SAVED;
                     updateSaveColor();
                     InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORSAVE ), NULL, TRUE );
                     return TRUE;
                 }
 
-                case MAKELONG( IDC_CBO_MARKSAVE, CBN_SELCHANGE ):
+                case IDC_BTN_COLORREVMOD :
                 {
-                    int markType = ( int )::SendMessage( GetDlgItem( hWndDlg,
-                                                         IDC_CBO_MARKSAVE ), CB_GETCURSEL, 0, 0 );
+                    COLORREF rgbCustom[16] = {0};
+                    CHOOSECOLOR cc = {sizeof( CHOOSECOLOR )};
 
-                    if ( markType >= 0 && markType <= N_ELEMS( MarkTypeArr ) )
+                    cc.Flags        = CC_RGBINIT | CC_FULLOPEN /* | CC_ANYCOLOR */;
+                    cc.hwndOwner    = hWndDlg;
+                    cc.rgbResult    = g_ColorRevMod;
+                    cc.lpCustColors = rgbCustom;
+
+                    if ( ChooseColor( &cc ) )
                     {
-                        g_SaveStyle = MarkTypeArr[markType];
-
-                        if ( markType == Arrow )
-                        {
-                            if ( g_Width < DEFAULTARROWWIDTH )
-                            {
-                                g_Width = DEFAULTARROWWIDTH;
-                                updateWidth();
-                            }
-                        }
-
-                        updateSaveStyle();
-                        refreshSettings( hWndDlg );
+                        g_ColorRevMod = cc.rgbResult;
+                        updateRevertModColor();
+                        InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORREVMOD ), NULL, TRUE );
                     }
 
+                    return TRUE;
+                }
+
+                case IDC_BTN_COLORREVMODDEF :
+                {
+                    g_ColorRevMod = DEFAULTCOLOR_REVERTED_TO_MODIFIED;
+                    updateRevertModColor();
+                    InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORREVMOD ), NULL, TRUE );
+                    return TRUE;
+                }
+
+                case IDC_BTN_COLORREVORI :
+                {
+                    COLORREF rgbCustom[16] = {0};
+                    CHOOSECOLOR cc = {sizeof( CHOOSECOLOR )};
+
+                    cc.Flags        = CC_RGBINIT | CC_FULLOPEN /* | CC_ANYCOLOR */;
+                    cc.hwndOwner    = hWndDlg;
+                    cc.rgbResult    = g_ColorRevOri;
+                    cc.lpCustColors = rgbCustom;
+
+                    if ( ChooseColor( &cc ) )
+                    {
+                        g_ColorRevOri = cc.rgbResult;
+                        updateRevertOriginColor();
+                        InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORREVORI ), NULL, TRUE );
+                    }
+
+                    return TRUE;
+                }
+
+                case IDC_BTN_COLORREVORIDEF :
+                {
+                    g_ColorRevOri = DEFAULTCOLOR_REVERTED_TO_ORIGIN;
+                    updateRevertOriginColor();
+                    InvalidateRect( GetDlgItem( hWndDlg, IDC_BTN_COLORREVORI ), NULL, TRUE );
                     return TRUE;
                 }
 

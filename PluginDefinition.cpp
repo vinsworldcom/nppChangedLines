@@ -32,20 +32,18 @@
 std::wstringstream debugString;
 #endif
 
-const TCHAR configFileName[]     = TEXT( "ChangedLines.ini" );
-const TCHAR sectionName[]        = TEXT( "Settings" );
-const TCHAR iniKeyEnabled[]      = TEXT( "Enabled" );
-const TCHAR iniKeyRaisePanel[]   = TEXT( "RaisePanelorToggle" );
-const TCHAR iniKeyGotoIncSave[]  = TEXT( "GotoIncludeSave" );
-const TCHAR iniKeyMargin[]       = TEXT( "Margin" );
-const TCHAR iniKeyWidth[]        = TEXT( "Width" );
-const TCHAR iniKeyColorChange[]  = TEXT( "ColorChange" );
-const TCHAR iniKeyColorSave[]    = TEXT( "ColorSave" );
-const TCHAR iniKeyStyleChange[]  = TEXT( "StyleChange" );
-const TCHAR iniKeyStyleSave[]    = TEXT( "StyleSave" );
-const TCHAR iniKeyMarkIdChange[] = TEXT( "MarkIdChange" );
-const TCHAR iniKeyMarkIdSave[]   = TEXT( "MarkIdSave" );
-const TCHAR iniKeyUseNppColors[] = TEXT( "UseNppCStyle" );
+const TCHAR configFileName[]      = TEXT( "ChangedLines.ini" );
+const TCHAR sectionName[]         = TEXT( "Settings" );
+const TCHAR iniKeyEnabled[]       = TEXT( "Enabled" );
+const TCHAR iniKeyRaisePanel[]    = TEXT( "PanelRaiseorToggle" );
+const TCHAR iniKeyPanelIncSave[]  = TEXT( "PanelIncludeSave" );
+const TCHAR iniKeyWidth[]         = TEXT( "MarginWidth" );
+const TCHAR iniKeyColorChange[]   = TEXT( "ColorChange" );
+const TCHAR iniKeyColorSave[]     = TEXT( "ColorSave" );
+const TCHAR iniKeyColorRevMod[]   = TEXT( "ColorRevMod" );
+const TCHAR iniKeyColorRevOri[]   = TEXT( "ColorRevOri" );
+const TCHAR iniKeyUseNppColors[]  = TEXT( "UseNppColors" );
+const TCHAR iniKeyUseIndicators[] = TEXT( "UseIndicators" );
 
 DemoDlg _Panel;
 toolbarIcons g_TBCL;
@@ -64,18 +62,19 @@ TCHAR iniFilePath[MAX_PATH];
 bool g_NppReady        = false;
 bool g_RaisePanel      = false;
 bool g_enabled         = true;
-bool g_GotoIncSave     = DEFAULTGOTOINCSAVE;
+bool g_PanelIncSave    = DEFAULTGOTOINCSAVE;
 int  g_Margin          = DEFAULTMARGIN;
 int  g_Width           = DEFAULTWIDTH;
-long g_ChangeColor     = DEFAULTCHANGECOLOR;
-long g_SaveColor       = DEFAULTSAVECOLOR;
-int  g_ChangeStyle     = DEFAULTCHANGESTYLE;
-int  g_SaveStyle       = DEFAULTSAVESTYLE;
-int  g_ChangeMarkId    = DEFAULTCHANGEMARKER;
-int  g_SaveMarkId      = DEFAULTSAVEMARKER;
+long g_ColorChange     = DEFAULTCOLOR_MODIFIED;
+long g_ColorSave       = DEFAULTCOLOR_SAVED;
+long g_ColorRevMod     = DEFAULTCOLOR_REVERTED_TO_MODIFIED;
+long g_ColorRevOri     = DEFAULTCOLOR_REVERTED_TO_ORIGIN;
 bool g_useNppColors    = false;
-int  g_ChangeMask      = ( 1 << g_ChangeMarkId );
-int  g_SaveMask        = ( 1 << g_SaveMarkId );
+bool g_useIndicators   = false;
+int  g_MaskChange      = ( 1 << SC_MARKNUM_HISTORY_MODIFIED );
+int  g_MaskSave        = ( 1 << SC_MARKNUM_HISTORY_SAVED );
+int  g_MaskRevMod      = ( 1 << SC_MARKNUM_HISTORY_REVERTED_TO_MODIFIED );
+int  g_MaskRevOri      = ( 1 << SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN );
 
 #define TIMER_POS       2
 #define TIMER_POS_DELAY 2000
@@ -102,36 +101,29 @@ void pluginCleanUp()
 
     ::WritePrivateProfileString( sectionName, iniKeyEnabled,
                                  g_enabled ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
-    ::WritePrivateProfileString( sectionName, iniKeyGotoIncSave,
-                                 g_GotoIncSave ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
-    _itot_s( g_Margin, buf, NUMDIGIT, 10 );
-    ::WritePrivateProfileString( sectionName, iniKeyMargin, buf,
-                                 iniFilePath );
+    ::WritePrivateProfileString( sectionName, iniKeyPanelIncSave,
+                                 g_PanelIncSave ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
     _itot_s( g_Width, buf, NUMDIGIT, 10 );
     ::WritePrivateProfileString( sectionName, iniKeyWidth, buf,
                                  iniFilePath );
-    _itot_s( g_ChangeColor, buf, NUMDIGIT, 10 );
+    _itot_s( g_ColorChange, buf, NUMDIGIT, 10 );
     ::WritePrivateProfileString( sectionName, iniKeyColorChange, buf,
                                  iniFilePath );
-    _itot_s( g_SaveColor, buf, NUMDIGIT, 10 );
+    _itot_s( g_ColorSave, buf, NUMDIGIT, 10 );
     ::WritePrivateProfileString( sectionName, iniKeyColorSave, buf,
                                  iniFilePath );
-    _itot_s( g_ChangeStyle, buf, NUMDIGIT, 10 );
-    ::WritePrivateProfileString( sectionName, iniKeyStyleChange, buf,
+    _itot_s( g_ColorRevMod, buf, NUMDIGIT, 10 );
+    ::WritePrivateProfileString( sectionName, iniKeyColorRevMod, buf,
                                  iniFilePath );
-    _itot_s( g_SaveStyle, buf, NUMDIGIT, 10 );
-    ::WritePrivateProfileString( sectionName, iniKeyStyleSave, buf,
-                                 iniFilePath );
-    _itot_s( g_ChangeMarkId, buf, NUMDIGIT, 10 );
-    ::WritePrivateProfileString( sectionName, iniKeyMarkIdChange, buf,
-                                 iniFilePath );
-    _itot_s( g_SaveMarkId, buf, NUMDIGIT, 10 );
-    ::WritePrivateProfileString( sectionName, iniKeyMarkIdSave, buf,
+    _itot_s( g_ColorRevOri, buf, NUMDIGIT, 10 );
+    ::WritePrivateProfileString( sectionName, iniKeyColorRevOri, buf,
                                  iniFilePath );
     ::WritePrivateProfileString( sectionName, iniKeyUseNppColors,
                                  g_useNppColors ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
     ::WritePrivateProfileString( sectionName, iniKeyRaisePanel,
                                  g_RaisePanel ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
+    ::WritePrivateProfileString( sectionName, iniKeyUseIndicators,
+                                 g_useIndicators ? TEXT( "1" ) : TEXT( "0" ), iniFilePath );
 
     if (g_TBCL.hToolbarBmp) {
         ::DeleteObject(g_TBCL.hToolbarBmp);
@@ -166,33 +158,24 @@ void commandMenuInit()
     // get the parameter value from plugin config
     g_enabled         = ::GetPrivateProfileInt( sectionName, iniKeyEnabled, 1,
                         iniFilePath );
-    g_GotoIncSave     = ::GetPrivateProfileInt( sectionName, iniKeyGotoIncSave, 0,
+    g_PanelIncSave     = ::GetPrivateProfileInt( sectionName, iniKeyPanelIncSave, 0,
                         iniFilePath );
-    g_Margin          = ::GetPrivateProfileInt( sectionName, iniKeyMargin,
-                        DEFAULTMARGIN, iniFilePath );
-    if ( g_Margin >= MAX_MARGINS )
-        g_Margin = DEFAULTMARGIN;
     g_Width           = ::GetPrivateProfileInt( sectionName, iniKeyWidth,
                         DEFAULTWIDTH, iniFilePath );
-    g_ChangeColor     = ::GetPrivateProfileInt( sectionName, iniKeyColorChange,
-                        DEFAULTCHANGECOLOR, iniFilePath );
-    g_SaveColor       = ::GetPrivateProfileInt( sectionName, iniKeyColorSave,
-                        DEFAULTSAVECOLOR, iniFilePath );
-    g_ChangeStyle     = ::GetPrivateProfileInt( sectionName, iniKeyStyleChange,
-                        DEFAULTCHANGESTYLE, iniFilePath );
-    g_SaveStyle       = ::GetPrivateProfileInt( sectionName, iniKeyStyleSave,
-                        DEFAULTSAVESTYLE, iniFilePath );
-    g_ChangeMarkId    = ::GetPrivateProfileInt( sectionName, iniKeyMarkIdChange,
-                        DEFAULTCHANGEMARKER, iniFilePath );
-    g_SaveMarkId      = ::GetPrivateProfileInt( sectionName, iniKeyMarkIdSave,
-                        DEFAULTSAVEMARKER, iniFilePath );
+    g_ColorChange     = ::GetPrivateProfileInt( sectionName, iniKeyColorChange,
+                        DEFAULTCOLOR_MODIFIED, iniFilePath );
+    g_ColorSave       = ::GetPrivateProfileInt( sectionName, iniKeyColorSave,
+                        DEFAULTCOLOR_SAVED, iniFilePath );
+    g_ColorRevMod     = ::GetPrivateProfileInt( sectionName, iniKeyColorRevMod,
+                        DEFAULTCOLOR_REVERTED_TO_MODIFIED, iniFilePath );
+    g_ColorRevOri     = ::GetPrivateProfileInt( sectionName, iniKeyColorRevOri,
+                        DEFAULTCOLOR_REVERTED_TO_ORIGIN, iniFilePath );
     g_useNppColors    = ::GetPrivateProfileInt( sectionName, iniKeyUseNppColors,
+                                                0, iniFilePath );
+    g_useIndicators   = ::GetPrivateProfileInt( sectionName, iniKeyUseIndicators,
                                                 0, iniFilePath );
     g_RaisePanel      = ::GetPrivateProfileInt( sectionName, iniKeyRaisePanel,
                                                 0, iniFilePath );
-
-    g_ChangeMask    = ( 1 << g_ChangeMarkId );
-    g_SaveMask      = ( 1 << g_SaveMarkId );
 
     //--------------------------------------------//
     //-- STEP 3. CUSTOMIZE YOUR PLUGIN COMMANDS --//
@@ -216,25 +199,23 @@ void commandMenuInit()
     NextChgKey->_isShift    = false;
     NextChgKey->_key        = 0x59;  //VK_Y
 
-    setCommand( ENABLE_INDEX, TEXT( "&Enable" ), doEnable, NULL,
-                g_enabled ? true : false );
-    setCommand( DOCKABLE_INDEX, TEXT( "Changed &Lines Panel" ), DockableDlg,
-                NULL, false );
-    setCommand( 2, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
-    setCommand( 3, TEXT( "Goto &Next Change" ), gotoNextChange, NULL,
-                false );
-    setCommand( 4, TEXT( "Goto &Previous Change" ), gotoPrevChange, NULL,
-                false );
-    setCommand( 5, TEXT( "&Clear all in Current File" ), clearAllCF, NULL,
-                false );
-    setCommand( 6, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
-    setCommand( 7, TEXT( "Goto Next Position" ), gotoNextPos, NextChgKey,
-                false );
-    setCommand( 8, TEXT( "Goto Previous Position" ), gotoPrevPos, PreChgKey,
-                false );
-    setCommand( 9, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
-    setCommand( 10, TEXT( "&Settings" ), doSettings, NULL,
-                false );
+    setCommand( ENABLE_INDEX,   TEXT( "&Enable Plugin Features" ), doEnable, NULL, g_enabled ? true : false );
+    setCommand( DOCKABLE_INDEX, TEXT( "Changed &Lines Panel" ), DockableDlg, NULL, _Panel.isVisible() ? true : false );
+    setCommand( 2,  TEXT( "-SEPARATOR-" ), NULL, NULL, false );
+    setCommand( 3,  TEXT( "Goto &Previous Change" ), gotoPrevChangeAll, NULL, false );
+    setCommand( 4,  TEXT( "Goto Previous Change (only)" ), gotoPrevChangeCOnly, NULL, false );
+    setCommand( 5,  TEXT( "Goto Previous Save (only)" ), gotoPrevChangeSOnly, NULL, false );
+    setCommand( 6,  TEXT( "-SEPARATOR-" ), NULL, NULL, false );
+    setCommand( 7,  TEXT( "Goto &Next Change" ), gotoNextChangeAll, NULL, false );
+    setCommand( 8,  TEXT( "Goto Next Change (only)" ), gotoNextChangeCOnly, NULL, false );
+    setCommand( 9,  TEXT( "Goto Next Save (only)" ), gotoNextChangeSOnly, NULL, false );
+    setCommand( 10, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
+    setCommand( 11, TEXT( "&Clear Change History (current file)" ), clearAllCF, NULL, false );
+    setCommand( 12, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
+    setCommand( 13, TEXT( "Goto Pre&vious Position" ), gotoPrevPos, PreChgKey, false );
+    setCommand( 14, TEXT( "Goto Ne&xt Position" ), gotoNextPos, NextChgKey, false );
+    setCommand( 15, TEXT( "-SEPARATOR-" ), NULL, NULL, false );
+    setCommand( 16, TEXT( "&Settings" ), doSettings, NULL, false );
 }
 
 //
@@ -279,24 +260,40 @@ HWND getCurScintilla()
 
 Sci_Position findNextMark( HWND hCurScintilla, Sci_Position searchStart, int mask )
 {
-    return ( ( int )::SendMessage( hCurScintilla, SCI_MARKERNEXT, searchStart,
-                                   mask ) );
+    return ( ( Sci_Position )::SendMessage( hCurScintilla, SCI_MARKERNEXT, 
+                                   searchStart, mask ) );
 }
 
-int findPrevMark( HWND hCurScintilla, int searchStart, int mask )
+Sci_Position findPrevMark( HWND hCurScintilla, Sci_Position searchStart, int mask )
 {
-    return ( ( int )::SendMessage( hCurScintilla, SCI_MARKERPREVIOUS,
+    return ( ( Sci_Position )::SendMessage( hCurScintilla, SCI_MARKERPREVIOUS,
                                    searchStart, mask ) );
 }
 
 void UpdatePlugin( UINT Msg, WPARAM wParam, LPARAM lParam )
 {
+    if ( ! g_enabled )
+        return;
+
     HWND ScintillaArr[] = { nppData._scintillaMainHandle, nppData._scintillaSecondHandle };
 
     for ( int i = 0; i < 2; i++ )
     {
         HWND hCurScintilla = ScintillaArr[i];
         SendMessage( hCurScintilla, Msg, wParam, lParam );
+    }
+}
+
+void updateIndicators()
+{
+    int on = SC_CHANGE_HISTORY_DISABLED;
+    on = ( int )::SendMessage( getCurScintilla(), SCI_GETCHANGEHISTORY, 0, 0 );
+    if ( on > SC_CHANGE_HISTORY_DISABLED )
+    {
+        if ( g_useIndicators )
+            UpdatePlugin( SCI_SETCHANGEHISTORY, on | SC_CHANGE_HISTORY_INDICATORS, 0 );
+        else
+            UpdatePlugin( SCI_SETCHANGEHISTORY, on &~ SC_CHANGE_HISTORY_INDICATORS, 0 );
     }
 }
 
@@ -307,25 +304,26 @@ void updateWidth()
 
 void updateChangeColor()
 {
-    UpdatePlugin( SCI_MARKERSETFORE, g_ChangeMarkId, g_ChangeColor );
-    UpdatePlugin( SCI_MARKERSETBACK, g_ChangeMarkId, g_ChangeColor );
+    UpdatePlugin( SCI_MARKERSETFORE, SC_MARKNUM_HISTORY_MODIFIED, g_ColorChange );
+    UpdatePlugin( SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_MODIFIED, g_ColorChange );
 }
 
 void updateSaveColor()
 {
-    UpdatePlugin( SCI_MARKERSETFORE, g_SaveMarkId, g_SaveColor );
-    UpdatePlugin( SCI_MARKERSETBACK, g_SaveMarkId, g_SaveColor );
+    UpdatePlugin( SCI_MARKERSETFORE, SC_MARKNUM_HISTORY_SAVED, g_ColorSave );
+    UpdatePlugin( SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_SAVED, g_ColorSave );
 }
 
-void updateChangeStyle()
+void updateRevertModColor()
 {
-    UpdatePlugin( SCI_MARKERDEFINE, g_ChangeMarkId, g_ChangeStyle );
-
+    UpdatePlugin( SCI_MARKERSETFORE, SC_MARKNUM_HISTORY_REVERTED_TO_MODIFIED, g_ColorRevMod );
+    UpdatePlugin( SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_REVERTED_TO_MODIFIED, g_ColorRevMod );
 }
 
-void updateSaveStyle()
+void updateRevertOriginColor()
 {
-    UpdatePlugin( SCI_MARKERDEFINE, g_SaveMarkId, g_SaveStyle );
+    UpdatePlugin( SCI_MARKERSETFORE, SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN, g_ColorRevOri );
+    UpdatePlugin( SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN, g_ColorRevOri );
 }
 
 void updatePanel()
@@ -368,87 +366,73 @@ void updatePosition()
     updatePosTimer();
 }
 
-void InitPlugin()
+bool InitPlugin()
 {
-    HWND ScintillaArr[] = { nppData._scintillaMainHandle, nppData._scintillaSecondHandle };
+    long version = ( long )::SendMessage( nppData._nppHandle, NPPM_GETNPPVERSION, true, 0 );
+    if (( HIWORD( version ) < 8 ) ||
+       (( HIWORD( version ) == 8 ) && ( LOWORD( version ) < 460 )))
+    {
+        MessageBox( nppData._nppHandle, 
+            TEXT("This version of Change Lines only works with Notepad++ >= 8.4.6."),
+            TEXT("Version Issue"), 
+            MB_OK | MB_ICONERROR
+        );
+        return false;
+    }
 
-    int margins = ( int )::SendMessage( getCurScintilla(), SCI_GETMARGINS, 0, 0 );
-    if ( margins <= g_Margin )
-        UpdatePlugin( SCI_SETMARGINS, ( g_Margin + 1 ), 0 );
+    int on = SC_CHANGE_HISTORY_DISABLED;
+    on = ( int )::SendMessage( getCurScintilla(), SCI_GETCHANGEHISTORY, 0, 0 );
+    if ( on == SC_CHANGE_HISTORY_DISABLED )
+    {
+        MessageBox( nppData._nppHandle, 
+            TEXT("Change History is disabled.  Please enable it in Notepad++ Settings."), 
+            TEXT("Change History Disabled"), 
+            MB_OK | MB_ICONINFORMATION
+        );
+        return false;
+    }
+
+    HWND ScintillaArr[] = { nppData._scintillaMainHandle, nppData._scintillaSecondHandle };
 
     for ( int i = 0; i < 2; i++ )
     {
         HWND hCurScintilla = ScintillaArr[i];
 
-        SendMessage( hCurScintilla, SCI_SETMARGINTYPEN, g_Margin,
-                     SC_MARGIN_SYMBOL );
-      
-        // Mask
-        int OriMask = ( int )::SendMessage( hCurScintilla, SCI_GETMARGINMASKN,
-                                            g_Margin, 0 );
-        int tmpMask = 0;
-        tmpMask = OriMask | g_ChangeMask | g_SaveMask;
-        SendMessage( hCurScintilla, SCI_SETMARGINMASKN, g_Margin, tmpMask );
         SendMessage( hCurScintilla, SCI_SETMARGINSENSITIVEN, g_Margin, true );
     }
 
     updateWidth();
+    updateIndicators();
     updateChangeColor();
     updateSaveColor();
-    updateChangeStyle();
-    updateSaveStyle();
+    updateRevertModColor();
+    updateRevertOriginColor();
+
+    ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
+                   funcItem[ENABLE_INDEX]._cmdID, MF_CHECKED );
+
+    return true;
 }
 
 void DestroyPlugin()
 {
-    HWND ScintillaArr[] = { nppData._scintillaMainHandle, nppData._scintillaSecondHandle };
-    char currDoc[MAX_PATH];
-    SendMessage( nppData._nppHandle, NPPM_GETFULLCURRENTPATH, ( WPARAM ) MAX_PATH, ( LPARAM) currDoc );
-
-    for ( int i = 0; i < 2; i++ )
-    {
-        HWND hCurScintilla = ScintillaArr[i];
-
-        SendMessage( hCurScintilla, SCI_MARKERDELETEALL, g_ChangeMarkId, 0 );
-        SendMessage( hCurScintilla, SCI_MARKERDELETEALL, g_SaveMarkId, 0 );
-
-        SendMessage( hCurScintilla, SCI_SETMARGINTYPEN, g_Margin, 0 );
-        SendMessage( hCurScintilla, SCI_SETMARGINWIDTHN, g_Margin, 0 );
-    }
-
-    // Get open files
-    TCHAR  **buffer;
-    long filecount = ( long )::SendMessage( nppData._nppHandle, NPPM_GETNBOPENFILES, 0,
-                                    ( LPARAM )ALL_OPEN_FILES );
-    buffer = new TCHAR*[filecount];
-
-    for ( int i = 0; i < filecount; i++ )
-        buffer[i] = new TCHAR[MAX_PATH];
-
-    SendMessage( nppData._nppHandle, NPPM_GETOPENFILENAMES, ( WPARAM )buffer,
-                   ( LPARAM )filecount );
-
-    for ( int i = 0; i < filecount; i++ )
-    {
-        SendMessage( nppData._nppHandle, NPPM_DOOPEN, 0, ( LPARAM )buffer[i] );
-        SendMessage( ScintillaArr[0], SCI_MARKERDELETEALL, g_ChangeMarkId, 0 );
-        SendMessage( ScintillaArr[0], SCI_MARKERDELETEALL, g_SaveMarkId, 0 );
-    }
-
-    // Cleanup
-    for ( int i = 0; i < filecount; i++ )
-        delete []buffer[i];
-    delete []buffer;
-
-    SendMessage( nppData._nppHandle, NPPM_DOOPEN, 0, ( LPARAM ) currDoc );
+    ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
+                   funcItem[ENABLE_INDEX]._cmdID, MF_UNCHECKED );
 }
 
 void clearAllCF()
 {
     HWND hCurScintilla = getCurScintilla();
 
-    SendMessage( hCurScintilla, SCI_MARKERDELETEALL, g_ChangeMarkId, 0 );
-    SendMessage( hCurScintilla, SCI_MARKERDELETEALL, g_SaveMarkId, 0 );
+    int chFlags = ( int )::SendMessage( hCurScintilla, SCI_GETCHANGEHISTORY, 0, 0 );
+    Sci_Position pos = ( Sci_Position )::SendMessage( hCurScintilla, SCI_GETCURRENTPOS, 0, 0 );
+    
+    SendMessage( hCurScintilla, SCI_EMPTYUNDOBUFFER, 0, 0 );
+    SendMessage( hCurScintilla, SCI_SETCHANGEHISTORY, SC_CHANGE_HISTORY_DISABLED, 0 );
+
+    SendMessage( hCurScintilla, SCI_SETCHANGEHISTORY, chFlags, 0 );
+
+    SendMessage( hCurScintilla, SCI_GOTOPOS, pos, 0 );
 }
 
 void doEnable()
@@ -459,19 +443,19 @@ void doEnable()
 
     if ( g_enabled )
     {
-        g_enabled = 0;
+        g_enabled = false;
         DestroyPlugin();
-        ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
-                       funcItem[ENABLE_INDEX]._cmdID, MF_UNCHECKED );
     }
     else
     {
-        g_enabled = 1;
-        InitPlugin();
-        ::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
-                       funcItem[ENABLE_INDEX]._cmdID, MF_CHECKED );
+        g_enabled = true;
+        bool success = InitPlugin();
+        if ( ! success)
+        {
+            g_enabled = false;
+            DestroyPlugin();
+        }
     }
-
 }
 
 void gotoLine(Sci_Position line)
@@ -487,18 +471,39 @@ void gotoLine(Sci_Position line)
     ::SendMessage( hCurScintilla, SCI_ENSUREVISIBLEENFORCEPOLICY, line, 0 );
 }
 
-void gotoNextChange()
+void gotoNextChangeAll()
+{
+    gotoNextChange(false, false);
+}
+
+void gotoNextChangeCOnly()
+{
+    gotoNextChange(true, false);
+}
+
+void gotoNextChangeSOnly()
+{
+    gotoNextChange(false, true);
+}
+
+void gotoNextChange(bool changed, bool saved)
 {
     HWND hCurScintilla = getCurScintilla();
 
-    Sci_Position line = 0;
+    Sci_Position line = -1;
     Sci_Position pos = ( Sci_Position )::SendMessage( hCurScintilla, SCI_GETCURRENTPOS, 0, 0 );
     Sci_Position searchStart = ( Sci_Position )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
                                             pos, 0 );
 
-    int mask = g_ChangeMask;
-    if ( g_GotoIncSave )
-        mask |= g_SaveMask;
+    int mask = g_MaskChange | g_MaskSave | g_MaskRevMod | g_MaskRevOri;
+    if ( changed )
+        mask = g_MaskChange | g_MaskRevMod;
+    if ( saved )
+        mask = g_MaskSave | g_MaskRevOri;
+
+/*
+    `markerNext` doesn't work on ChangeHistory:
+       https://sourceforge.net/p/scintilla/bugs/2353/
     while ( true )
     {
         line = findNextMark( hCurScintilla, searchStart + 1, mask );
@@ -517,20 +522,80 @@ void gotoNextChange()
 
     if ( line != -1 )
         gotoLine( line );
+    `markerNext` doesn't work on ChangeHistory:
+*/
+
+    Sci_Position textLength = ( Sci_Position)::SendMessage( hCurScintilla, SCI_GETTEXTLENGTH, 0, 0 );
+    Sci_Position lastLine = ( Sci_Position)::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION, textLength, 0 );
+    Sci_Position consec = searchStart;
+
+    for ( Sci_Position i = searchStart+1; i < lastLine+1; i++ )
+    {
+        int mark = ( int )::SendMessage( hCurScintilla, SCI_MARKERGET, i, 0 );
+        if ( mark & mask )
+        {
+            if ( i == consec + 1 )
+                consec += 1;
+            else
+            {
+                line = i;
+                break;
+            }
+        }
+    }
+
+    if ( line == -1 )
+    {
+        for ( Sci_Position i = 0; i < searchStart; i++ )
+        {
+            int mark = ( int )::SendMessage( hCurScintilla, SCI_MARKERGET, i, 0 );
+            if ( mark & mask )
+            {
+                if ( i == consec + 1 )
+                    consec += 1;
+                else
+                {
+                    line = i;
+                    break;
+                }
+            }
+        }
+    }
+
+    if ( line != -1 )
+        gotoLine(line);
 }
 
-void gotoPrevChange()
+void gotoPrevChangeAll()
+{
+    gotoPrevChange(false, false);
+}
+
+void gotoPrevChangeCOnly()
+{
+    gotoPrevChange(true, false);
+}
+
+void gotoPrevChangeSOnly()
+{
+    gotoPrevChange(false, true);
+}
+
+void gotoPrevChange(bool changed, bool saved)
 {
     HWND hCurScintilla = getCurScintilla();
 
-    int line = 0;
-    int pos = ( int )::SendMessage( hCurScintilla, SCI_GETCURRENTPOS, 0, 0 );
-    int searchStart = ( int )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
+    Sci_Position line = -1;
+    Sci_Position pos = ( Sci_Position )::SendMessage( hCurScintilla, SCI_GETCURRENTPOS, 0, 0 );
+    Sci_Position searchStart = ( Sci_Position )::SendMessage( hCurScintilla, SCI_LINEFROMPOSITION,
                                             pos, 0 );
 
-    int mask = g_ChangeMask;
-    if ( g_GotoIncSave )
-        mask |= g_SaveMask;
+    int mask = g_MaskChange | g_MaskSave | g_MaskRevMod | g_MaskRevOri;
+    if ( changed )
+        mask = g_MaskChange | g_MaskRevMod;
+    if ( saved )
+        mask = g_MaskSave | g_MaskRevOri;
+
     while ( true )
     {
         line = findPrevMark( hCurScintilla, searchStart - 1, mask );
@@ -552,91 +617,6 @@ void gotoPrevChange()
 
     if ( line != -1 )
        gotoLine( line );
-}
-
-int AddMarkFromLine( HWND hCurScintilla, Sci_Position line )
-{
-    int markHandle = -1;
-    int state = ( int )::SendMessage( hCurScintilla, SCI_MARKERGET, line, 0 );
-
-    if ( state == g_SaveMask )
-        SendMessage( hCurScintilla, SCI_MARKERDELETE, line, g_SaveMarkId );
-    else if ( state != 0 )
-        return markHandle;
-
-    markHandle = ( int )::SendMessage( hCurScintilla, SCI_MARKERADD, line,
-                                       g_ChangeMarkId );
-
-    return markHandle;
-}
-
-void SetBookmark( HWND hCurScintilla, Sci_Position lineNo, Sci_Position linesAdded )
-{
-    int handle = AddMarkFromLine( hCurScintilla, lineNo );
-
-    if ( handle == -1 && linesAdded == 0 )
-        return;
-
-    if ( linesAdded > 0 )
-    {
-        for ( Sci_Position line = 1; line <= linesAdded; line++ )
-            AddMarkFromLine( hCurScintilla, lineNo + line );
-    }
-}
-
-bool RemoveMarkFromLine( HWND hCurScintilla, Sci_Position line )
-{
-    int state = ( int )::SendMessage( hCurScintilla, SCI_MARKERGET, line, 0 );
-
-    if ( state == 0 )
-        return false;
-
-    if ( state == g_SaveMask )
-        SendMessage( hCurScintilla, SCI_MARKERDELETE, line, g_SaveMarkId );
-    else
-        SendMessage( hCurScintilla, SCI_MARKERDELETE, line, g_ChangeMarkId );
-
-    return true;
-}
-
-void DelBookmark( HWND hCurScintilla, Sci_Position lineNo, Sci_Position lineAdd )
-{
-    bool canUndoFlag = SendMessage( hCurScintilla, SCI_CANUNDO, 0, 0 );
-
-    if ( !canUndoFlag )
-    {
-        SendMessage( hCurScintilla, SCI_MARKERDELETEALL, g_ChangeMarkId, 0 );
-        SendMessage( hCurScintilla, SCI_MARKERDELETEALL, g_SaveMarkId, 0 );
-        return;
-    }
-
-    Sci_Position lineB = lineNo;
-    Sci_Position lineE = lineNo + lineAdd;
-
-    if ( lineAdd < 0 )
-        lineE = lineNo - lineAdd;
-
-    for ( Sci_Position line = lineB; line <= lineE; line++ )
-        RemoveMarkFromLine( hCurScintilla, line );
-}
-
-void convertChangeToSave()
-{
-    HWND hCurScintilla = getCurScintilla();
-
-    Sci_Position pos = 0;
-
-    while ( true )
-    {
-        Sci_Position line = findNextMark( hCurScintilla, pos, g_ChangeMask );
-
-        if ( line == -1 )
-            break;
-
-        SendMessage( hCurScintilla, SCI_MARKERDELETE, line, g_ChangeMarkId );
-        SendMessage( hCurScintilla, SCI_MARKERADD, line, g_SaveMarkId );
-        pos = line;
-    }
 }
 
 ////////////////////////////////////////////////////////////////////////////
