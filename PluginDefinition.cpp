@@ -633,11 +633,12 @@ void DockableDlg()
         _Panel.create( &data );
 
         // define the default docking behaviour
-        data.uMask = DWS_DF_CONT_LEFT | DWS_ICONTAB;
+        data.uMask = DWS_DF_CONT_LEFT | DWS_ICONTAB | DWS_ADDINFO;
 
         data.hIconTab = ( HICON )::LoadImage( _Panel.getHinst(),
                                               MAKEINTRESOURCE( IDI_PLUGINPANEL ), IMAGE_ICON, 0, 0,
                                               LR_LOADTRANSPARENT );
+        data.pszAddInfo = _Panel.addInfo;
         data.pszModuleName = _Panel.getPluginFileName();
 
         // the dlgDlg should be the index of funcItem where the current function pointer is

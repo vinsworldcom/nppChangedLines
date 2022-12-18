@@ -186,6 +186,8 @@ void DemoDlg::updateList()
         }
         line++;
     }
+    wsprintf( addInfo, TEXT("%i"), i );
+    updateDockingDlg();
 }
 
 void DemoDlg::refreshDialog()

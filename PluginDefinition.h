@@ -71,7 +71,7 @@ bool setCommand( size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc,
 //
 // Your plugin command functions
 //
-#define DEFAULTGOTOINCSAVE 1
+#define DEFAULTGOTOINCSAVE 0
 #define DEFAULTMARGIN      2
 #define DEFAULTWIDTH       9
 #define DEFAULTCOLOR_REVERTED_TO_ORIGIN   0xbfa040
