@@ -36,6 +36,10 @@ public :
 		_hParent = parent2set;
 	};
 
+	bool isFloating() const {
+		return _isFloating;
+	};
+
     void updateListTimer();
 
     TCHAR addInfo[32];

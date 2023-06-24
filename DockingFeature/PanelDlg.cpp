@@ -27,6 +27,7 @@
 #include <vector>
 #include <windowsx.h>
 
+extern DemoDlg _Panel;
 extern bool g_NppReady;
 extern bool g_PanelIncSave;
 extern bool g_useNppColors;
@@ -468,8 +469,15 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                 }
                 // Trap VK_ESCAPE
                 case IDCANCEL :
-                { 
-                    ::SetFocus( getCurScintilla() );
+                {
+                    if ( _Panel.isFloating() )
+                    {
+                        EndDialog(_hSelf, 0);
+                        _Panel.display(false);
+                    }
+                    else
+                        ::SetFocus( getCurScintilla() );
+
                     return TRUE;
                 }
             }
@@ -538,6 +546,9 @@ INT_PTR CALLBACK DemoDlg::run_dlgProc( UINT message, WPARAM wParam,
                     toolbarDropdown((LPNMTOOLBAR)lParam);
                     return TBDDRET_DEFAULT;
                 }
+
+                default :
+                    return DockingDlgInterface::run_dlgProc( message, wParam, lParam );
             }
 
             return FALSE;
